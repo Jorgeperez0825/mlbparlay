@@ -1,10 +1,35 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
-import { MLBGame } from '@/services/mlbApi';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
+
+interface GameData {
+  teams: {
+    home: {
+      team: {
+        name: string;
+      };
+      leagueRecord: {
+        wins: number;
+        losses: number;
+      };
+    };
+    away: {
+      team: {
+        name: string;
+      };
+      leagueRecord: {
+        wins: number;
+        losses: number;
+      };
+    };
+  };
+  venue: {
+    name: string;
+  };
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,7 +40,7 @@ export default async function handler(
   }
 
   try {
-    const gameData = req.body as MLBGame;
+    const gameData = req.body as GameData;
 
     const completion = await openai.chat.completions.create({
       messages: [{ 
@@ -37,7 +62,7 @@ export default async function handler(
   }
 }
 
-function generatePrompt(game: MLBGame): string {
+function generatePrompt(game: GameData): string {
   return `
     Analyze this MLB game between ${game.teams.home.team.name} and ${game.teams.away.team.name}:
     

@@ -39,34 +39,39 @@ export interface BettingAnalysis {
 
 export class AnalysisService {
   private async analyzePatterns(game: MLBGame, historicalData: unknown): Promise<string> {
-    const prompt = `
-      Analyze the following MLB game and historical data to identify betting patterns and opportunities:
-      
-      Game Data:
-      - Teams: ${game.teams.away.team.name} vs ${game.teams.home.team.name}
-      - Date: ${game.gameDate}
-      - Venue: ${game.venue.name}
-      
-      Historical Context:
-      ${JSON.stringify(historicalData, null, 2)}
-      
-      Please analyze:
-      1. Historical patterns and trends
-      2. Key statistical indicators
-      3. Potential value opportunities
-      4. Risk factors to consider
-      
-      Provide a detailed analysis focusing on betting implications.
-    `;
+    try {
+      const prompt = `Analyze the following MLB game and historical data to identify betting patterns and opportunities:
+        
+        Game Data:
+        - Teams: ${game.teams.away.team.name} vs ${game.teams.home.team.name}
+        - Date: ${game.gameDate}
+        - Venue: ${game.venue.name}
+        
+        Historical Context:
+        ${JSON.stringify(historicalData, null, 2)}
+        
+        Please analyze:
+        1. Historical patterns and trends
+        2. Key statistical indicators
+        3. Potential value opportunities
+        4. Risk factors to consider
+        
+        Provide a detailed analysis focusing on betting implications.`;
 
-    const completion = await mlbAnalyzer.chat.completions.create({
-      messages: [{ role: "system", content: prompt }],
-      model: "gpt-4",
-      temperature: 0.7,
-      max_tokens: 1000
-    });
+      const analysis = await mlbAnalyzer.analyzeGame({
+        gameId: game.gamePk.toString(),
+        date: game.gameDate,
+        teams: {
+          home: game.teams.home.team.name,
+          away: game.teams.away.team.name
+        }
+      });
 
-    return completion.choices[0]?.message?.content || '';
+      return analysis.prediction;
+    } catch (error) {
+      console.error('Error analyzing patterns:', error);
+      throw error;
+    }
   }
 
   private async calculateMarginOptimization(odds: OddsData, bankroll: number): Promise<{

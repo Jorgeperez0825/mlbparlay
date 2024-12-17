@@ -1,5 +1,3 @@
-import { MLBGame } from './mlbApi';
-
 interface AnalysisRequest {
   gameId: string;
   date: string;
