@@ -4,16 +4,14 @@ import { sampleGames } from '@/data/sampleGames';
 import { useState } from 'react';
 
 export default function Schedule() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-
   const handleDateChange = (date: string) => {
-    setSelectedDate(date);
+    console.log('Date changed:', date);
   };
 
   return (
     <MainLayout>
       <GameSchedule 
-        games={sampleGames} 
+        games={sampleGames}
         onDateChange={handleDateChange}
       />
     </MainLayout>

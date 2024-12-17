@@ -39,6 +39,25 @@ interface MLBGame {
   // ... otros campos necesarios
 }
 
+// Definir interfaces para las lesiones
+interface InjuryStatus {
+  description: string;
+}
+
+interface InjuredPerson {
+  fullName: string;
+}
+
+interface Injury {
+  person: InjuredPerson;
+  status: InjuryStatus;
+}
+
+interface InjuryList {
+  home: Injury[];
+  away: Injury[];
+}
+
 // Funciones auxiliares
 function getLastTenRecord(games: MLBGame[]): string {
   let wins = 0;
@@ -72,8 +91,8 @@ function getHeadToHeadRecord(games: MLBGame[]): string {
   return `${homeWins}-${awayWins}`;
 }
 
-function formatInjuries(injuries: { home: any[], away: any[] }): string {
-  const formatTeamInjuries = (players: any[]) => {
+function formatInjuries(injuries: InjuryList): string {
+  const formatTeamInjuries = (players: Injury[]) => {
     return players.map(player => 
       `${player.person.fullName} (${player.status.description})`
     ).join(', ');
@@ -85,7 +104,34 @@ function formatInjuries(injuries: { home: any[], away: any[] }): string {
   `;
 }
 
-function generatePrompt(gameData: any): string {
+// Definir interfaz para los datos del juego
+interface GameData {
+  game: MLBGame;
+  homeTeamStats: TeamStats;
+  awayTeamStats: TeamStats;
+  pitchingMatchup: {
+    home: {
+      fullName: string;
+      stats: Array<{ stat: { era: number } }>;
+    };
+    away: {
+      fullName: string;
+      stats: Array<{ stat: { era: number } }>;
+    };
+  };
+  weather: {
+    condition: string;
+    temp: number;
+  };
+  trends: {
+    home: MLBGame[];
+    away: MLBGame[];
+  };
+  headToHead: MLBGame[];
+  injuries: InjuryList;
+}
+
+function generatePrompt(gameData: GameData): string {
   return `
     As an MLB betting analyst, provide a detailed analysis and prediction for this game:
     
@@ -118,14 +164,6 @@ function generatePrompt(gameData: any): string {
     Format the response as a JSON object.
   `;
 }
-
-const analyzeData = async (params: AnalysisParams): Promise<AnalysisResult> => {
-  return {
-    prediction: '',
-    confidence: 0,
-    data: {}
-  };
-};
 
 export default async function handler(
   req: NextApiRequest,

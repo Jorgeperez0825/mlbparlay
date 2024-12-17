@@ -26,21 +26,42 @@ interface GameAnalysis {
   };
 }
 
+interface AnalysisRequest {
+  gameId: string;
+  date: string;
+  teams: {
+    home: string;
+    away: string;
+  };
+  // ... otros campos necesarios
+}
+
+interface AnalysisResponse {
+  prediction: string;
+  confidence: number;
+  factors: string[];
+  // ... otros campos necesarios
+}
+
 export class MLBAnalyzer {
-  async analyzeGame(gameData: any): Promise<GameAnalysis> {
-    const response = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(gameData)
-    });
+  async analyzeGame(data: AnalysisRequest): Promise<AnalysisResponse> {
+    try {
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to analyze game data');
+      if (!response.ok) {
+        throw new Error('Failed to analyze game');
+      }
+
+      return response.json();
+    } catch (error) {
+      throw error;
     }
-
-    return response.json();
   }
 
   private getLastTenRecord(games: MLBGame[]): string {

@@ -50,6 +50,33 @@ interface MLBHistoricalData {
   recentForm: any[];
 }
 
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message?: string;
+}
+
+interface GameStats {
+  stat: {
+    era?: number;
+    avg?: number;
+    hr?: number;
+    rbi?: number;
+    // ... otros stats necesarios
+  };
+}
+
+interface Player {
+  id: number;
+  fullName: string;
+  stats: GameStats[];
+}
+
+interface Weather {
+  condition: string;
+  temp: number;
+}
+
 class MLBApi {
   private async get(endpoint: string) {
     try {
@@ -139,6 +166,30 @@ class MLBApi {
       };
     } catch (error) {
       console.error(`Error fetching historical data for game ${gameId}:`, error);
+      throw error;
+    }
+  }
+
+  async getPlayerStats(playerId: string): Promise<ApiResponse<Player>> {
+    try {
+      const response = await this.get(`/people/${playerId}?hydrate=stats`);
+      return {
+        data: response,
+        status: 200
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getGameWeather(gameId: string): Promise<ApiResponse<Weather>> {
+    try {
+      const response = await this.get(`/game/${gameId}/weather`);
+      return {
+        data: response,
+        status: 200
+      };
+    } catch (error) {
       throw error;
     }
   }
