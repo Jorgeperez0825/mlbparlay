@@ -40,7 +40,14 @@ export interface BettingAnalysis {
 export class AnalysisService {
   private async analyzePatterns(game: MLBGame, historicalData: unknown): Promise<string> {
     try {
-      const prompt = `Analyze the following MLB game and historical data to identify betting patterns and opportunities:
+      const analysis = await mlbAnalyzer.analyzeGame({
+        gameId: game.gamePk.toString(),
+        date: game.gameDate,
+        teams: {
+          home: game.teams.home.team.name,
+          away: game.teams.away.team.name
+        },
+        prompt: `Analyze the following MLB game and historical data to identify betting patterns and opportunities:
         
         Game Data:
         - Teams: ${game.teams.away.team.name} vs ${game.teams.home.team.name}
@@ -56,15 +63,7 @@ export class AnalysisService {
         3. Potential value opportunities
         4. Risk factors to consider
         
-        Provide a detailed analysis focusing on betting implications.`;
-
-      const analysis = await mlbAnalyzer.analyzeGame({
-        gameId: game.gamePk.toString(),
-        date: game.gameDate,
-        teams: {
-          home: game.teams.home.team.name,
-          away: game.teams.away.team.name
-        }
+        Provide a detailed analysis focusing on betting implications.`
       });
 
       return analysis.prediction;

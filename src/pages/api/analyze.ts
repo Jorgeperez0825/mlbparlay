@@ -5,30 +5,14 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-interface GameData {
+interface GameAnalysisRequest {
+  gameId: string;
+  date: string;
   teams: {
-    home: {
-      team: {
-        name: string;
-      };
-      leagueRecord: {
-        wins: number;
-        losses: number;
-      };
-    };
-    away: {
-      team: {
-        name: string;
-      };
-      leagueRecord: {
-        wins: number;
-        losses: number;
-      };
-    };
+    home: string;
+    away: string;
   };
-  venue: {
-    name: string;
-  };
+  prompt: string;
 }
 
 export default async function handler(
@@ -40,12 +24,12 @@ export default async function handler(
   }
 
   try {
-    const gameData = req.body as GameData;
+    const data = req.body as GameAnalysisRequest;
 
     const completion = await openai.chat.completions.create({
       messages: [{ 
         role: "user", 
-        content: generatePrompt(gameData)
+        content: data.prompt || generatePrompt(data)
       }],
       model: "gpt-4",
       response_format: { type: "json_object" },
@@ -62,14 +46,14 @@ export default async function handler(
   }
 }
 
-function generatePrompt(game: GameData): string {
+function generatePrompt(game: GameAnalysisRequest): string {
   return `
-    Analyze this MLB game between ${game.teams.home.team.name} and ${game.teams.away.team.name}:
+    Analyze this MLB game between ${game.teams.home} and ${game.teams.away}:
     
-    Home Team: ${game.teams.home.team.name}
+    Home Team: ${game.teams.home}
     - Record: ${game.teams.home.leagueRecord.wins}-${game.teams.home.leagueRecord.losses}
     
-    Away Team: ${game.teams.away.team.name}
+    Away Team: ${game.teams.away}
     - Record: ${game.teams.away.leagueRecord.wins}-${game.teams.away.leagueRecord.losses}
     
     Venue: ${game.venue.name}

@@ -5,6 +5,7 @@ interface AnalysisRequest {
     home: string;
     away: string;
   };
+  prompt?: string;
 }
 
 interface AnalysisResponse {
