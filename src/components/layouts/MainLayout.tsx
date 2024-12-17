@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { HomeIcon, TrophyIcon, ClockIcon } from '@heroicons/react/24/outline';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Logo } from '@/components/common/Logo';
 
 interface MainLayoutProps {

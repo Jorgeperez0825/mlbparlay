@@ -6,13 +6,46 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// Definir tipos específicos en lugar de any
+interface AnalysisParams {
+  gameId: string;
+  playerId: string;
+  metricId: string;
+}
+
+interface AnalysisResult {
+  prediction: string;
+  confidence: number;
+  data: Record<string, unknown>;
+}
+
+interface TeamStats {
+  team: {
+    id: number;
+    name: string;
+  };
+  leagueRecord: {
+    wins: number;
+    losses: number;
+  };
+  score?: number;
+}
+
+interface MLBGame {
+  teams: {
+    home: TeamStats;
+    away: TeamStats;
+  };
+  // ... otros campos necesarios
+}
+
 // Funciones auxiliares
 function getLastTenRecord(games: MLBGame[]): string {
   let wins = 0;
   games.slice(0, 10).forEach(game => {
     const isHomeTeam = game.teams.home.team.id === games[0].teams.home.team.id;
-    const teamScore = isHomeTeam ? game.teams.home.score : game.teams.away.score;
-    const opponentScore = isHomeTeam ? game.teams.away.score : game.teams.home.score;
+    const teamScore = isHomeTeam ? game.teams.home.score ?? 0 : game.teams.away.score ?? 0;
+    const opponentScore = isHomeTeam ? game.teams.away.score ?? 0 : game.teams.home.score ?? 0;
     
     if (teamScore > opponentScore) {
       wins++;
@@ -26,9 +59,12 @@ function getHeadToHeadRecord(games: MLBGame[]): string {
   let awayWins = 0;
 
   games.forEach(game => {
-    if (game.teams.home.score > game.teams.away.score) {
+    const homeScore = game.teams.home.score ?? 0;
+    const awayScore = game.teams.away.score ?? 0;
+    
+    if (homeScore > awayScore) {
       homeWins++;
-    } else if (game.teams.away.score > game.teams.home.score) {
+    } else if (awayScore > homeScore) {
       awayWins++;
     }
   });
@@ -83,6 +119,14 @@ function generatePrompt(gameData: any): string {
   `;
 }
 
+const analyzeData = async (params: AnalysisParams): Promise<AnalysisResult> => {
+  return {
+    prediction: '',
+    confidence: 0,
+    data: {}
+  };
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -103,7 +147,11 @@ export default async function handler(
       response_format: { type: "json_object" },
     });
 
-    res.status(200).json(JSON.parse(completion.choices[0].message.content));
+    if (completion.choices[0].message.content) {
+      res.status(200).json(JSON.parse(completion.choices[0].message.content));
+    } else {
+      res.status(500).json({ message: 'No content received from OpenAI' });
+    }
   } catch (error) {
     console.error('OpenAI API error:', error);
     res.status(500).json({ message: 'Error analyzing game data' });

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { HiMail } from 'react-icons/hi';
 import { RiLockPasswordLine } from 'react-icons/ri';
+import Link from 'next/link';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -16,9 +17,12 @@ const LoginPage = () => {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
-            <a href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-              create a new account
-            </a>
+            <Link 
+              href="/register"
+              className="font-medium text-[#041E42] hover:text-[#002D72]"
+            >
+              Register here
+            </Link>
           </p>
         </div>
         <form className="mt-8 space-y-6">

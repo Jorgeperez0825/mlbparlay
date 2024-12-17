@@ -1,6 +1,5 @@
 import { Metric } from '@/constants/metrics';
 import { MLBGame } from '@/services/mlbApi';
-import Image from 'next/image';
 
 interface AnalysisResultProps {
   metric: Metric;

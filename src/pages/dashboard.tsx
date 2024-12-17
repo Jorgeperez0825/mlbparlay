@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { MLBGame, mlbApi } from '@/services/mlbApi';
 import { MainLayout } from '@/components/layouts/MainLayout';
 import { 
   FireIcon as FireIconOutline,
@@ -8,14 +6,36 @@ import {
   UserIcon as UserIconOutline,
   ArrowTrendingUpIcon as TrendingUpIconOutline
 } from '@heroicons/react/24/outline';
-import Link from 'next/link';
 import { bettingApi } from '@/services/bettingApi';
+
+interface BettingTrend {
+  type: string;
+  description: string;
+  odds: string;
+  volume: string;
+  trend: string;
+  confidence: number;
+}
+
+interface RecordChase {
+  player: string;
+  record: string;
+  odds: string;
+  current: string;
+  progress: number;
+}
+
+interface PopularSearch {
+  term: string;
+  trending: boolean;
+  volume: string;
+}
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [hotBets, setHotBets] = useState([]);
-  const [trendingRecords, setTrendingRecords] = useState([]);
-  const [popularSearches, setPopularSearches] = useState([]);
+  const [hotBets, setHotBets] = useState<BettingTrend[]>([]);
+  const [trendingRecords, setTrendingRecords] = useState<RecordChase[]>([]);
+  const [popularSearches, setPopularSearches] = useState<PopularSearch[]>([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
