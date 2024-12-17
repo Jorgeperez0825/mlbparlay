@@ -1,31 +1,5 @@
 import { MLBGame } from './mlbApi';
 
-interface GameAnalysis {
-  prediction: {
-    winner: string;
-    confidence: number;
-    predictedScore: {
-      home: number;
-      away: number;
-    };
-  };
-  keyFactors: string[];
-  analysis: {
-    pitching: string;
-    batting: string;
-    historical: string;
-    weather: string;
-    injuries: string;
-  };
-  bettingAdvice: {
-    recommendation: string;
-    moneyline: string;
-    spread: string;
-    overUnder: string;
-    confidence: number;
-  };
-}
-
 interface AnalysisRequest {
   gameId: string;
   date: string;
@@ -41,6 +15,20 @@ interface AnalysisResponse {
   confidence: number;
   factors: string[];
   // ... otros campos necesarios
+}
+
+interface InjuredPlayer {
+  person: {
+    fullName: string;
+  };
+  status: {
+    description: string;
+  };
+}
+
+interface InjuryList {
+  home: InjuredPlayer[];
+  away: InjuredPlayer[];
 }
 
 export class MLBAnalyzer {
@@ -68,8 +56,8 @@ export class MLBAnalyzer {
     let wins = 0;
     games.slice(0, 10).forEach(game => {
       const isHomeTeam = game.teams.home.team.id === games[0].teams.home.team.id;
-      const teamScore = isHomeTeam ? game.teams.home.score : game.teams.away.score;
-      const opponentScore = isHomeTeam ? game.teams.away.score : game.teams.home.score;
+      const teamScore = isHomeTeam ? game.teams.home.score ?? 0 : game.teams.away.score ?? 0;
+      const opponentScore = isHomeTeam ? game.teams.away.score ?? 0 : game.teams.home.score ?? 0;
       
       if (teamScore > opponentScore) {
         wins++;
@@ -83,9 +71,12 @@ export class MLBAnalyzer {
     let awayWins = 0;
 
     games.forEach(game => {
-      if (game.teams.home.score > game.teams.away.score) {
+      const homeScore = game.teams.home.score ?? 0;
+      const awayScore = game.teams.away.score ?? 0;
+      
+      if (homeScore > awayScore) {
         homeWins++;
-      } else if (game.teams.away.score > game.teams.home.score) {
+      } else if (awayScore > homeScore) {
         awayWins++;
       }
     });
@@ -93,8 +84,8 @@ export class MLBAnalyzer {
     return `${homeWins}-${awayWins}`;
   }
 
-  private formatInjuries(injuries: { home: any[], away: any[] }): string {
-    const formatTeamInjuries = (players: any[]) => {
+  private formatInjuries(injuries: InjuryList): string {
+    const formatTeamInjuries = (players: InjuredPlayer[]) => {
       return players.map(player => 
         `${player.person.fullName} (${player.status.description})`
       ).join(', ');

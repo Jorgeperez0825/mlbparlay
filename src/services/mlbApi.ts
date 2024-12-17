@@ -43,11 +43,25 @@ export interface MLBGame {
   };
 }
 
+interface GameDate {
+  games: MLBGame[];
+}
+
 interface MLBHistoricalData {
-  headToHead: any[];
-  playerMatchups: any[];
-  venueStats: any[];
-  recentForm: any[];
+  headToHead: MLBGame[];
+  playerMatchups: Player[];
+  venueStats: VenueStats[];
+  recentForm: {
+    homeTeam: MLBGame[];
+    awayTeam: MLBGame[];
+  };
+}
+
+interface VenueStats {
+  stats: Array<{
+    type: string;
+    value: number;
+  }>;
 }
 
 interface ApiResponse<T> {
@@ -75,6 +89,16 @@ interface Player {
 interface Weather {
   condition: string;
   temp: number;
+}
+
+interface MLBResponse<T> {
+  dates?: Array<{
+    games: T[];
+  }>;
+  people?: T[];
+  venues?: Array<{
+    stats: VenueStats[];
+  }>;
 }
 
 class MLBApi {
@@ -134,34 +158,30 @@ class MLBApi {
       const awayTeamId = game.teams.away.team.id;
       const currentYear = new Date().getFullYear();
 
-      // Fetch last 10 head-to-head games
-      const headToHead = await this.get(
+      const headToHead = await this.get<MLBResponse<MLBGame>>(
         `/schedule?sportId=1&teamId=${homeTeamId}&oppTeamId=${awayTeamId}&season=${currentYear}&gameType=R&hydrate=decisions,probablePitcher,linescore,stats`
       );
 
-      // Fetch player matchups
-      const playerMatchups = await this.get(
-        `/people?personIds=${game.teams.home.team.id},${game.teams.away.team.id}&hydrate=stats(group=[hitting,pitching],type=[vsPlayer,statSplits],sitCodes=[h,a],season=${currentYear})`
+      const playerMatchups = await this.get<MLBResponse<Player>>(
+        `/people?personIds=${game.teams.home.team.id},${game.teams.away.team.id}&hydrate=stats`
       );
 
-      // Fetch venue stats
       const venueStats = await this.get(
         `/venues/${game.venue.id}?hydrate=stats(group=[venue],season=${currentYear})`
       );
 
-      // Fetch recent form (last 10 games for each team)
       const [homeTeamForm, awayTeamForm] = await Promise.all([
         this.get(`/schedule?sportId=1&teamId=${homeTeamId}&season=${currentYear}&gameType=R&limit=10&hydrate=decisions,probablePitcher,linescore,stats`),
         this.get(`/schedule?sportId=1&teamId=${awayTeamId}&season=${currentYear}&gameType=R&limit=10&hydrate=decisions,probablePitcher,linescore,stats`)
       ]);
 
       return {
-        headToHead: headToHead.dates?.flatMap((d: any) => d.games) || [],
+        headToHead: headToHead.dates?.flatMap((d: GameDate) => d.games) || [],
         playerMatchups: playerMatchups.people || [],
         venueStats: venueStats.venues?.[0]?.stats || [],
         recentForm: {
-          homeTeam: homeTeamForm.dates?.flatMap((d: any) => d.games) || [],
-          awayTeam: awayTeamForm.dates?.flatMap((d: any) => d.games) || []
+          homeTeam: homeTeamForm.dates?.flatMap((d: GameDate) => d.games) || [],
+          awayTeam: awayTeamForm.dates?.flatMap((d: GameDate) => d.games) || []
         }
       };
     } catch (error) {
