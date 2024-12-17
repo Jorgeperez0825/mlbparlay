@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { HomeIcon, TrophyIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { FireIcon, TrophyIcon, ClockIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import { Logo } from '@/components/common/Logo';
 
 interface MainLayoutProps {
@@ -9,14 +9,21 @@ interface MainLayoutProps {
 
 const MAIN_NAVIGATION = [
   {
-    name: 'Dashboard',
-    path: '/dashboard',
-    icon: HomeIcon
-  },
-  {
     name: 'Parlay',
     path: '/schedule',
     icon: TrophyIcon
+  },
+  {
+    name: 'Hot Picks',
+    path: '/dashboard',
+    icon: FireIcon,
+    iconColor: 'text-red-500'
+  },
+  {
+    name: 'Analysis',
+    path: '/research/778373',
+    icon: ChartBarIcon,
+    iconColor: 'text-blue-500'
   },
   {
     name: 'History',
@@ -90,7 +97,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                   } rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-all duration-200 group relative`}
                   title={!isSidebarOpen ? item.name : undefined}
                 >
-                  <item.icon className={`h-5 w-5 transition-transform duration-200 group-hover:scale-105`} />
+                  <item.icon className={`h-5 w-5 transition-transform duration-200 group-hover:scale-105 ${item.iconColor || ''}`} />
                   {isSidebarOpen ? (
                     <span className="font-medium">{item.name}</span>
                   ) : (

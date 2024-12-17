@@ -1,205 +1,266 @@
-import { mlbAnalyzer } from './openaiApi';
-import { MLBGame } from './mlbApi';
+import { MLBGame, mlbApi } from './mlbApi';
 
-interface OddsData {
-  bookmaker: string;
-  decimal: number;
-  impliedProbability: number;
+interface PlayerStats {
+  id: number;
+  name: string;
+  recentForm: {
+    lastGames: {
+      hits: number;
+      atBats: number;
+      homeRuns: number;
+      strikeouts: number;
+    }[];
+    streak: {
+      hitting: number;
+      homers: number;
+    };
+  };
+  vsTeam: {
+    avg: number;
+    hits: number;
+    homeRuns: number;
+    atBats: number;
+  };
+  vsVenue: {
+    avg: number;
+    ops: number;
+    games: number;
+  };
 }
 
-interface MarketAnalysis {
-  inefficiencies: Array<{
-    bookmaker: string;
-    odds: number;
-    deviation: number;
-    expectedValue: number;
-  }>;
-  arbitrageOpportunities: Array<{
-    bookmakers: string[];
-    odds: number[];
-    guaranteedProfit: number;
-  }>;
+interface PitcherStats {
+  id: number;
+  name: string;
+  recentForm: {
+    lastGames: {
+      innings: number;
+      strikeouts: number;
+      earnedRuns: number;
+      hits: number;
+    }[];
+  };
+  vsTeam: {
+    era: number;
+    strikeouts: number;
+    innings: number;
+    games: number;
+  };
+  atVenue: {
+    era: number;
+    strikeouts: number;
+    innings: number;
+    games: number;
+  };
 }
 
-export interface AnalysisMetric {
+interface BettingStrategy {
   id: string;
-  value: number;
-  confidence: number;
-  explanation: string;
-}
-
-export interface BettingAnalysis {
-  gameId: string;
-  metrics: AnalysisMetric[];
-  recommendations: string[];
-  riskLevel: 'low' | 'medium' | 'high';
-  expectedValue: number;
-  timestamp: string;
+  type: 'PLAYER_PROP' | 'TEAM_PROP' | 'GAME_PROP';
+  name: string;
+  description: string;
+  confidence: number; // 0-100
+  odds: string;
+  analysis: string;
+  data: {
+    player?: PlayerStats;
+    pitcher?: PitcherStats;
+    prediction: number;
+    probability: number;
+  };
 }
 
 export class AnalysisService {
-  private async analyzePatterns(game: MLBGame, historicalData: unknown): Promise<string> {
+  // Método principal de análisis
+  async analyzeGame(game: MLBGame): Promise<BettingStrategy[]> {
     try {
-      const analysis = await mlbAnalyzer.analyzeGame({
-        gameId: game.gamePk.toString(),
-        date: game.gameDate,
-        teams: {
-          home: game.teams.home.team.name,
-          away: game.teams.away.team.name
-        },
-        prompt: `Analyze the following MLB game and historical data to identify betting patterns and opportunities:
-        
-        Game Data:
-        - Teams: ${game.teams.away.team.name} vs ${game.teams.home.team.name}
-        - Date: ${game.gameDate}
-        - Venue: ${game.venue.name}
-        
-        Historical Context:
-        ${JSON.stringify(historicalData, null, 2)}
-        
-        Please analyze:
-        1. Historical patterns and trends
-        2. Key statistical indicators
-        3. Potential value opportunities
-        4. Risk factors to consider
-        
-        Provide a detailed analysis focusing on betting implications.`
-      });
+      const [
+        homeTeamStats,
+        awayTeamStats,
+        homePitcherStats,
+        awayPitcherStats,
+        venueStats,
+        recentMatchups
+      ] = await Promise.all([
+        this.getTeamStats(game.teams.home.team.id),
+        this.getTeamStats(game.teams.away.team.id),
+        this.getPitcherStats(game.probablePitchers?.home?.id),
+        this.getPitcherStats(game.probablePitchers?.away?.id),
+        this.getVenueStats(game.venue.id),
+        this.getRecentMatchups(game.teams.home.team.id, game.teams.away.team.id)
+      ]);
 
-      return analysis.prediction;
+      const strategies: BettingStrategy[] = [];
+
+      // Análisis de pitchers
+      if (homePitcherStats && awayPitcherStats) {
+        strategies.push(
+          this.analyzePitcherMatchup(homePitcherStats, awayPitcherStats, venueStats),
+          ...this.generateStrikeoutProps(homePitcherStats, awayTeamStats),
+          ...this.generateStrikeoutProps(awayPitcherStats, homeTeamStats)
+        );
+      }
+
+      // Análisis de bateadores
+      strategies.push(
+        ...this.analyzeHitterMatchups(homeTeamStats, awayPitcherStats),
+        ...this.analyzeHitterMatchups(awayTeamStats, homePitcherStats)
+      );
+
+      strategies.push(
+        ...this.analyzeVenueTrends(venueStats, homeTeamStats, awayTeamStats),
+        ...this.analyzeRecentMatchups(recentMatchups)
+      );
+
+      return strategies.sort((a, b) => b.confidence - a.confidence);
     } catch (error) {
-      console.error('Error analyzing patterns:', error);
+      console.error('Error analyzing game:', error);
       throw error;
     }
   }
 
-  private async calculateMarginOptimization(odds: OddsData, bankroll: number): Promise<{
-    optimalBetSize: number;
-    expectedValue: number;
-    confidence: number;
-  }> {
-    // Kelly Criterion calculation
-    const probability = odds.impliedProbability;
-    const decimal = odds.decimal;
-    
-    const edge = (probability * (decimal - 1)) - (1 - probability);
-    const kellyFraction = edge / (decimal - 1);
-    
-    // Conservative Kelly (using 1/4 of the suggested bet size)
-    const optimalBetSize = (kellyFraction * bankroll) * 0.25;
-    
+  // Métodos de obtención de datos
+  private async getTeamStats(teamId: number): Promise<any> {
+    return mlbApi.getTeamStats(teamId.toString());
+  }
+
+  private async getPitcherStats(pitcherId?: number): Promise<PitcherStats | null> {
+    if (!pitcherId) return null;
+    return mlbApi.getPlayerStats(pitcherId.toString());
+  }
+
+  private async getVenueStats(venueId: number): Promise<any> {
+    return mlbApi.getVenueStats(venueId.toString());
+  }
+
+  private async getRecentMatchups(team1Id: number, team2Id: number): Promise<any> {
+    return mlbApi.getHeadToHeadHistory(team1Id.toString(), team2Id.toString(), 2023, 2023);
+  }
+
+  // Métodos de análisis
+  private analyzePitcherMatchup(
+    homePitcher: PitcherStats,
+    awayPitcher: PitcherStats,
+    venueStats: any
+  ): BettingStrategy {
+    const homeRecentPerformance = this.calculatePitcherForm(homePitcher.recentForm.lastGames);
+    const awayRecentPerformance = this.calculatePitcherForm(awayPitcher.recentForm.lastGames);
+
+    const confidence = this.calculateConfidence([
+      homeRecentPerformance.consistency,
+      awayRecentPerformance.consistency,
+      homePitcher.atVenue.era < 4.0 ? 0.7 : 0.3,
+      awayPitcher.atVenue.era < 4.0 ? 0.7 : 0.3
+    ]);
+
     return {
-      optimalBetSize,
-      expectedValue: edge * bankroll,
-      confidence: probability
+      id: `pitcher_matchup_${homePitcher.id}_${awayPitcher.id}`,
+      type: 'GAME_PROP',
+      name: 'Pitcher Matchup Analysis',
+      description: `${homePitcher.name} vs ${awayPitcher.name}`,
+      confidence,
+      odds: this.calculateOdds(confidence),
+      analysis: this.generatePitcherAnalysis(homePitcher, awayPitcher, venueStats),
+      data: {
+        pitcher: homePitcher,
+        prediction: homeRecentPerformance.expectedERA,
+        probability: confidence / 100
+      }
     };
   }
 
-  private async detectMarketInefficiencies(odds: OddsData[]): Promise<MarketAnalysis> {
-    const inefficiencies: MarketAnalysis['inefficiencies'] = [];
-    const arbitrageOpportunities: MarketAnalysis['arbitrageOpportunities'] = [];
+  private generateStrikeoutProps(pitcher: PitcherStats, opposingTeam: any): BettingStrategy[] {
+    const avgStrikeouts = this.calculateAverageStrikeouts(pitcher.recentForm.lastGames);
+    const teamStrikeoutRate = this.getTeamStrikeoutRate(opposingTeam);
     
-    // Calculate true probability using market consensus
-    const impliedProbabilities = odds.map(o => 1 / o.decimal);
-    const marketConsensus = 1 / (impliedProbabilities.reduce((a, b) => a + b) / impliedProbabilities.length);
-    
-    // Find significant deviations
-    odds.forEach(odd => {
-      const deviation = Math.abs(1/odd.decimal - marketConsensus);
-      if (deviation > 0.05) { // 5% threshold
-        inefficiencies.push({
-          bookmaker: odd.bookmaker,
-          odds: odd.decimal,
-          deviation: deviation,
-          expectedValue: (marketConsensus * odd.decimal) - 1
-        });
+    const confidence = this.calculateConfidence([
+      avgStrikeouts > 6 ? 0.8 : 0.4,
+      teamStrikeoutRate > 0.23 ? 0.7 : 0.3,
+      pitcher.atVenue.strikeouts / pitcher.atVenue.innings > 1.0 ? 0.6 : 0.4
+    ]);
+
+    return [{
+      id: `strikeouts_over_${pitcher.id}`,
+      type: 'PLAYER_PROP',
+      name: `${pitcher.name} Strikeouts Over`,
+      description: 'Pitcher strikeout total prediction',
+      confidence,
+      odds: this.calculateOdds(confidence),
+      analysis: this.generateStrikeoutAnalysis(pitcher, opposingTeam, avgStrikeouts),
+      data: {
+        pitcher,
+        prediction: avgStrikeouts,
+        probability: confidence / 100
       }
-    });
-    
-    // Check for arbitrage opportunities
-    for (let i = 0; i < odds.length; i++) {
-      for (let j = i + 1; j < odds.length; j++) {
-        const margin = (1/odds[i].decimal) + (1/odds[j].decimal);
-        if (margin < 1) {
-          arbitrageOpportunities.push({
-            bookmakers: [odds[i].bookmaker, odds[j].bookmaker],
-            odds: [odds[i].decimal, odds[j].decimal],
-            guaranteedProfit: (1 - margin) * 100
-          });
-        }
-      }
-    }
-    
-    return { inefficiencies, arbitrageOpportunities };
+    }];
   }
 
-  public async analyzeBettingOpportunity(
-    game: MLBGame,
-    selectedMetrics: string[],
-    historicalData: unknown,
-    odds: OddsData[],
-    bankroll: number
-  ): Promise<BettingAnalysis> {
-    const analysis: BettingAnalysis = {
-      gameId: game.gamePk.toString(),
-      metrics: [],
-      recommendations: [],
-      riskLevel: 'medium',
-      expectedValue: 0,
-      timestamp: new Date().toISOString()
+  // Métodos de utilidad
+  private calculatePitcherForm(games: PitcherStats['recentForm']['lastGames']) {
+    const eras = games.map(g => (g.earnedRuns * 9) / g.innings);
+    return {
+      expectedERA: eras.reduce((a, b) => a + b, 0) / eras.length,
+      consistency: this.calculateConsistency(eras)
     };
-
-    // Process each selected metric
-    for (const metricId of selectedMetrics) {
-      switch (metricId) {
-        case 'historical_pattern': {
-          const patternAnalysis = await this.analyzePatterns(game, historicalData);
-          analysis.metrics.push({
-            id: metricId,
-            value: 0,
-            confidence: 0.8,
-            explanation: patternAnalysis
-          });
-          break;
-        }
-        
-        case 'market_inefficiency': {
-          const { inefficiencies, arbitrageOpportunities } = await this.detectMarketInefficiencies(odds);
-          const hasSignificantValue = inefficiencies.some(i => i.expectedValue > 0.05);
-          
-          analysis.metrics.push({
-            id: metricId,
-            value: inefficiencies.length,
-            confidence: 0.85,
-            explanation: JSON.stringify({ inefficiencies, arbitrageOpportunities })
-          });
-          
-          if (hasSignificantValue) {
-            analysis.recommendations.push('Significant market inefficiencies detected. Consider value betting opportunities.');
-          }
-          break;
-        }
-        
-        case 'kelly_criterion': {
-          const optimization = await this.calculateMarginOptimization(odds[0], bankroll);
-          
-          analysis.metrics.push({
-            id: metricId,
-            value: optimization.optimalBetSize,
-            confidence: optimization.confidence,
-            explanation: `Optimal bet size: $${optimization.optimalBetSize.toFixed(2)}, Expected value: $${optimization.expectedValue.toFixed(2)}`
-          });
-          
-          analysis.expectedValue = optimization.expectedValue;
-          break;
-        }
-      }
-    }
-
-    // Calculate overall risk level
-    const avgConfidence = analysis.metrics.reduce((sum, m) => sum + m.confidence, 0) / analysis.metrics.length;
-    analysis.riskLevel = avgConfidence > 0.8 ? 'low' : avgConfidence > 0.6 ? 'medium' : 'high';
-
-    return analysis;
   }
+
+  private calculateConsistency(values: number[]): number {
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / values.length;
+    return 1 - Math.min(Math.sqrt(variance) / avg, 1);
+  }
+
+  private calculateConfidence(factors: number[]): number {
+    return Math.round(
+      factors.reduce((a, b) => a + b, 0) / factors.length * 100
+    );
+  }
+
+  private calculateOdds(confidence: number): string {
+    const baseOdds = confidence > 65 ? -110 : +110;
+    return baseOdds > 0 ? `+${baseOdds}` : baseOdds.toString();
+  }
+
+  private generatePitcherAnalysis(
+    homePitcher: PitcherStats,
+    awayPitcher: PitcherStats,
+    venueStats: any
+  ): string {
+    // Implementar lógica de generación de análisis
+    return `Analysis based on recent performance and historical matchups...`;
+  }
+
+  private generateStrikeoutAnalysis(
+    pitcher: PitcherStats,
+    opposingTeam: any,
+    avgStrikeouts: number
+  ): string {
+    // Implementar lógica de generación de análisis
+    return `Strikeout analysis based on pitcher's recent performance...`;
+  }
+
+  private calculateAverageStrikeouts(games: PitcherStats['recentForm']['lastGames']): number {
+    return games.reduce((sum, game) => sum + game.strikeouts, 0) / games.length;
+  }
+
+  private getTeamStrikeoutRate(team: any): number {
+    // Implementación básica
+    return team.stats?.batting?.strikeouts / (team.stats?.batting?.atBats || 500) || 0.23;
+  }
+
+  private analyzeHitterMatchups(teamStats: any, opposingPitcher: PitcherStats | null): BettingStrategy[] {
+    // Implementación básica por ahora
+    return [];
+  }
+
+  private analyzeVenueTrends(venueStats: any, homeTeamStats: any, awayTeamStats: any): BettingStrategy[] {
+    // Implementación básica por ahora
+    return [];
+  }
+
+  private analyzeRecentMatchups(recentGames: any[]): BettingStrategy[] {
+    // Implementación básica por ahora
+    return [];
+  }
+
+  // ... otros métodos de análisis
 } 

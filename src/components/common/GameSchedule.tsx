@@ -2,16 +2,102 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from '@heroicons/react/24/outline';
-import { MLBGame } from '@/services/mlbApi';
+import { MLBGame, mlbApi } from '@/services/mlbApi';
+import { TeamLogo } from '@/components/common/TeamLogo';
 
 interface GameScheduleProps {
   games: MLBGame[];
   onDateChange: (date: string) => void;
+  isLoading?: boolean;
 }
 
-export const GameSchedule = ({ games, onDateChange }: GameScheduleProps) => {
+const formatGameTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const formattedHours = hours % 12 || 12;
+  const formattedMinutes = minutes.toString().padStart(2, '0');
+  
+  return `${formattedHours}:${formattedMinutes} ${ampm}`;
+};
+
+const getGameStatus = (game: MLBGame) => {
+  const now = new Date();
+  const gameTime = new Date(game.gameDate);
+  
+  if (game.status?.abstractGameState === 'Final') {
+    return 'final';
+  } else if (game.status?.abstractGameState === 'Live') {
+    return 'live';
+  } else if (gameTime > now) {
+    return 'upcoming';
+  } else {
+    return 'unknown';
+  }
+};
+
+const GameScore = ({ game, status }: { game: MLBGame; status: string }) => {
+  if (status === 'upcoming') {
+    return (
+      <div className="text-center">
+        <span className="text-2xl font-bold text-gray-300">VS</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-center">
+      <div className="flex items-center justify-center space-x-3">
+        <span className="text-2xl font-bold">{game.teams.away.score || 0}</span>
+        <span className="text-lg text-gray-400">-</span>
+        <span className="text-2xl font-bold">{game.teams.home.score || 0}</span>
+      </div>
+      {status === 'final' && (
+        <span className="text-sm text-gray-500">Final</span>
+      )}
+      {status === 'live' && (
+        <span className="text-sm text-red-500 animate-pulse">En Vivo</span>
+      )}
+    </div>
+  );
+};
+
+export const GameSchedule = ({ games, onDateChange, isLoading }: GameScheduleProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentGames, setCurrentGames] = useState<MLBGame[]>(games);
+
+  const fetchGames = async (date: Date) => {
+    try {
+      setError(null);
+      const formattedDate = date.toISOString().split('T')[0];
+      const gamesData = await mlbApi.getGamesByDate(formattedDate);
+      
+      if (gamesData.length === 0) {
+        setError(`No games scheduled for ${date.toLocaleDateString()}. Please select another date.`);
+      } else {
+        setCurrentGames(gamesData);
+        onDateChange(formattedDate);
+        setSelectedDate(date);
+      }
+      setIsCalendarOpen(false);
+    } catch (error) {
+      setError('Error loading games. Please try again.');
+      console.error('Error:', error);
+    }
+  };
+
+  const handleDateSelect = (date: Date) => {
+    fetchGames(date);
+  };
+
+  const changeDate = (days: number) => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(selectedDate.getDate() + days);
+    fetchGames(newDate);
+  };
 
   const getDates = () => {
     const dates = [];
@@ -33,19 +119,6 @@ export const GameSchedule = ({ games, onDateChange }: GameScheduleProps) => {
     };
   };
 
-  const changeDate = (days: number) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(selectedDate.getDate() + days);
-    setSelectedDate(newDate);
-    onDateChange(newDate.toISOString().split('T')[0]);
-  };
-
-  const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
-    onDateChange(date.toISOString().split('T')[0]);
-    setIsCalendarOpen(false);
-  };
-
   const isToday = (date: Date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
@@ -53,17 +126,6 @@ export const GameSchedule = ({ games, onDateChange }: GameScheduleProps) => {
 
   const isSelected = (date: Date) => {
     return date.toDateString() === selectedDate.toDateString();
-  };
-
-  const getGameStatus = (gameDate: string) => {
-    const now = new Date();
-    const gameTime = new Date(gameDate);
-    
-    if (gameTime > now) {
-      return 'upcoming';
-    } else {
-      return 'live';
-    }
   };
 
   const generateCalendarDays = () => {
@@ -202,17 +264,19 @@ export const GameSchedule = ({ games, onDateChange }: GameScheduleProps) => {
                 onClick={() => handleDateSelect(date)}
                 className={`flex-1 py-3 relative ${
                   isSelected(date)
-                    ? 'bg-[#041E42] text-white'
+                    ? 'bg-[#041E42]/10 text-[#041E42] font-medium border-b-2 border-[#041E42]'
                     : isToday(date)
-                    ? 'bg-blue-50'
+                    ? 'bg-blue-50/70'
                     : 'hover:bg-gray-50'
                 } transition-colors`}
               >
                 <div className="text-xs font-medium">{formatted.day}</div>
-                <div className="text-2xl font-bold mt-1">{formatted.date}</div>
+                <div className={`text-2xl font-bold mt-1 ${
+                  isSelected(date) ? 'text-[#041E42]' : ''
+                }`}>{formatted.date}</div>
                 <div className="text-xs mt-1">{formatted.month}</div>
                 {isToday(date) && !isSelected(date) && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-500/70 rounded-full" />
                 )}
               </button>
             );
@@ -222,14 +286,28 @@ export const GameSchedule = ({ games, onDateChange }: GameScheduleProps) => {
 
       {/* Games List */}
       <div className="divide-y divide-gray-100">
-        {games.length === 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center py-16">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#041E42]"></div>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="text-red-500 text-lg">{error}</div>
+            <button 
+              onClick={() => fetchGames(selectedDate)}
+              className="mt-4 text-[#041E42] hover:underline"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : currentGames.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="text-gray-400 text-lg">No games scheduled for this date</div>
             <p className="text-gray-500 text-sm mt-2">Select another date to view games</p>
           </div>
         ) : (
-          games.map((game) => {
-            const status = getGameStatus(game.gameDate);
+          currentGames.map((game) => {
+            const status = getGameStatus(game);
             return (
               <Link
                 key={game.gamePk}
@@ -244,12 +322,13 @@ export const GameSchedule = ({ games, onDateChange }: GameScheduleProps) => {
                           LIVE
                         </span>
                       )}
+                      {status === 'final' && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          FINAL
+                        </span>
+                      )}
                       <div className="text-sm text-gray-500">
-                        {new Date(game.gameDate).toLocaleTimeString([], { 
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true 
-                        })}
+                        {formatGameTime(game.gameDate)}
                       </div>
                     </div>
                     <div className="text-sm text-gray-500">
@@ -260,12 +339,9 @@ export const GameSchedule = ({ games, onDateChange }: GameScheduleProps) => {
                   <div className="grid grid-cols-3 gap-4 items-center">
                     {/* Away Team */}
                     <div className="flex items-center space-x-4">
-                      <Image
-                        src={`https://www.mlbstatic.com/team-logos/${game.teams.away.team.id}.svg`}
-                        alt={game.teams.away.team.name}
-                        width={48}
-                        height={48}
-                        className="object-contain"
+                      <TeamLogo 
+                        teamId={game.teams.away.team.id} 
+                        teamName={game.teams.away.team.name}
                       />
                       <div>
                         <div className="font-bold text-lg">{game.teams.away.team.name}</div>
@@ -275,10 +351,8 @@ export const GameSchedule = ({ games, onDateChange }: GameScheduleProps) => {
                       </div>
                     </div>
 
-                    {/* VS */}
-                    <div className="text-center">
-                      <span className="text-2xl font-bold text-gray-300">VS</span>
-                    </div>
+                    {/* Score / VS */}
+                    <GameScore game={game} status={status} />
 
                     {/* Home Team */}
                     <div className="flex items-center justify-end space-x-4">
@@ -288,25 +362,30 @@ export const GameSchedule = ({ games, onDateChange }: GameScheduleProps) => {
                           ({game.teams.home.leagueRecord.wins}-{game.teams.home.leagueRecord.losses})
                         </div>
                       </div>
-                      <Image
-                        src={`https://www.mlbstatic.com/team-logos/${game.teams.home.team.id}.svg`}
-                        alt={game.teams.home.team.name}
-                        width={48}
-                        height={48}
-                        className="object-contain"
+                      <TeamLogo 
+                        teamId={game.teams.home.team.id} 
+                        teamName={game.teams.home.team.name}
                       />
                     </div>
                   </div>
 
-                  <div className="mt-4 flex justify-end">
-                    <button 
-                      className="inline-flex items-center px-6 py-2.5 border-2 border-[#041E42] text-base font-bold rounded-lg 
-                      text-white bg-[#041E42] hover:bg-[#E31837] hover:border-[#E31837] transition-all duration-200 
-                      transform hover:scale-105 shadow-lg hover:shadow-xl"
-                    >
-                      Create Parlay
-                    </button>
-                  </div>
+                  {/* Botón Create Parlay solo para juegos futuros y en vivo */}
+                  {(status === 'upcoming' || status === 'live') && (
+                    <div className="mt-4 flex justify-center">
+                      <button 
+                        className={`
+                          inline-flex items-center px-6 py-2.5 border-2 text-base font-bold rounded-lg 
+                          text-white transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl
+                          ${status === 'live' 
+                            ? 'border-[#E31837] bg-[#E31837] hover:bg-[#C41230] hover:border-[#C41230]' 
+                            : 'border-[#041E42] bg-[#041E42] hover:bg-[#E31837] hover:border-[#E31837]'
+                          }
+                        `}
+                      >
+                        {status === 'live' ? 'Create Live Parlay' : 'Create Parlay'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </Link>
             );
