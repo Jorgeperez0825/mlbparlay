@@ -1,5 +1,25 @@
-import { openai } from './openaiApi';
+import { mlbAnalyzer } from './openaiApi';
 import { MLBGame } from './mlbApi';
+
+interface OddsData {
+  bookmaker: string;
+  decimal: number;
+  impliedProbability: number;
+}
+
+interface MarketAnalysis {
+  inefficiencies: Array<{
+    bookmaker: string;
+    odds: number;
+    deviation: number;
+    expectedValue: number;
+  }>;
+  arbitrageOpportunities: Array<{
+    bookmakers: string[];
+    odds: number[];
+    guaranteedProfit: number;
+  }>;
+}
 
 export interface AnalysisMetric {
   id: string;
@@ -18,7 +38,7 @@ export interface BettingAnalysis {
 }
 
 export class AnalysisService {
-  private async analyzePatterns(game: MLBGame, historicalData: any): Promise<string> {
+  private async analyzePatterns(game: MLBGame, historicalData: unknown): Promise<string> {
     const prompt = `
       Analyze the following MLB game and historical data to identify betting patterns and opportunities:
       
@@ -39,7 +59,7 @@ export class AnalysisService {
       Provide a detailed analysis focusing on betting implications.
     `;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await mlbAnalyzer.chat.completions.create({
       messages: [{ role: "system", content: prompt }],
       model: "gpt-4",
       temperature: 0.7,
@@ -49,7 +69,7 @@ export class AnalysisService {
     return completion.choices[0]?.message?.content || '';
   }
 
-  private async calculateMarginOptimization(odds: any, bankroll: number): Promise<{
+  private async calculateMarginOptimization(odds: OddsData, bankroll: number): Promise<{
     optimalBetSize: number;
     expectedValue: number;
     confidence: number;
@@ -71,12 +91,9 @@ export class AnalysisService {
     };
   }
 
-  private async detectMarketInefficiencies(odds: any[]): Promise<{
-    inefficiencies: any[];
-    arbitrageOpportunities: any[];
-  }> {
-    const inefficiencies = [];
-    const arbitrageOpportunities = [];
+  private async detectMarketInefficiencies(odds: OddsData[]): Promise<MarketAnalysis> {
+    const inefficiencies: MarketAnalysis['inefficiencies'] = [];
+    const arbitrageOpportunities: MarketAnalysis['arbitrageOpportunities'] = [];
     
     // Calculate true probability using market consensus
     const impliedProbabilities = odds.map(o => 1 / o.decimal);
@@ -115,8 +132,8 @@ export class AnalysisService {
   public async analyzeBettingOpportunity(
     game: MLBGame,
     selectedMetrics: string[],
-    historicalData: any,
-    odds: any[],
+    historicalData: unknown,
+    odds: OddsData[],
     bankroll: number
   ): Promise<BettingAnalysis> {
     const analysis: BettingAnalysis = {
@@ -135,7 +152,7 @@ export class AnalysisService {
           const patternAnalysis = await this.analyzePatterns(game, historicalData);
           analysis.metrics.push({
             id: metricId,
-            value: 0, // Sentiment score could be calculated
+            value: 0,
             confidence: 0.8,
             explanation: patternAnalysis
           });
@@ -166,14 +183,12 @@ export class AnalysisService {
             id: metricId,
             value: optimization.optimalBetSize,
             confidence: optimization.confidence,
-            explanation: \`Optimal bet size: $\${optimization.optimalBetSize.toFixed(2)}, Expected value: $\${optimization.expectedValue.toFixed(2)}\`
+            explanation: `Optimal bet size: $${optimization.optimalBetSize.toFixed(2)}, Expected value: $${optimization.expectedValue.toFixed(2)}`
           });
           
           analysis.expectedValue = optimization.expectedValue;
           break;
         }
-        
-        // Add more metric processors as needed
       }
     }
 

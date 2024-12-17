@@ -7,28 +7,12 @@ interface AnalysisRequest {
     home: string;
     away: string;
   };
-  // ... otros campos necesarios
 }
 
 interface AnalysisResponse {
   prediction: string;
   confidence: number;
   factors: string[];
-  // ... otros campos necesarios
-}
-
-interface InjuredPlayer {
-  person: {
-    fullName: string;
-  };
-  status: {
-    description: string;
-  };
-}
-
-interface InjuryList {
-  home: InjuredPlayer[];
-  away: InjuredPlayer[];
 }
 
 export class MLBAnalyzer {
@@ -50,51 +34,6 @@ export class MLBAnalyzer {
     } catch (error) {
       throw error;
     }
-  }
-
-  private getLastTenRecord(games: MLBGame[]): string {
-    let wins = 0;
-    games.slice(0, 10).forEach(game => {
-      const isHomeTeam = game.teams.home.team.id === games[0].teams.home.team.id;
-      const teamScore = isHomeTeam ? game.teams.home.score ?? 0 : game.teams.away.score ?? 0;
-      const opponentScore = isHomeTeam ? game.teams.away.score ?? 0 : game.teams.home.score ?? 0;
-      
-      if (teamScore > opponentScore) {
-        wins++;
-      }
-    });
-    return `${wins}-${10-wins}`;
-  }
-
-  private getHeadToHeadRecord(games: MLBGame[]): string {
-    let homeWins = 0;
-    let awayWins = 0;
-
-    games.forEach(game => {
-      const homeScore = game.teams.home.score ?? 0;
-      const awayScore = game.teams.away.score ?? 0;
-      
-      if (homeScore > awayScore) {
-        homeWins++;
-      } else if (awayScore > homeScore) {
-        awayWins++;
-      }
-    });
-
-    return `${homeWins}-${awayWins}`;
-  }
-
-  private formatInjuries(injuries: InjuryList): string {
-    const formatTeamInjuries = (players: InjuredPlayer[]) => {
-      return players.map(player => 
-        `${player.person.fullName} (${player.status.description})`
-      ).join(', ');
-    };
-
-    return `
-      Home Team: ${formatTeamInjuries(injuries.home)}
-      Away Team: ${formatTeamInjuries(injuries.away)}
-    `;
   }
 }
 

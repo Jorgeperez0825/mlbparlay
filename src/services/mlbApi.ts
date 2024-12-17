@@ -102,7 +102,7 @@ interface MLBResponse<T> {
 }
 
 class MLBApi {
-  private async get(endpoint: string) {
+  private async get<T>(endpoint: string): Promise<T> {
     try {
       const response = await mlbAxios.get(endpoint);
       return response.data;
