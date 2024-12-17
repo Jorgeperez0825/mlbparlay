@@ -50,13 +50,11 @@ function generatePrompt(game: GameAnalysisRequest): string {
   return `
     Analyze this MLB game between ${game.teams.home} and ${game.teams.away}:
     
-    Home Team: ${game.teams.home}
-    - Record: ${game.teams.home.leagueRecord.wins}-${game.teams.home.leagueRecord.losses}
+    Teams:
+    - Home Team: ${game.teams.home}
+    - Away Team: ${game.teams.away}
     
-    Away Team: ${game.teams.away}
-    - Record: ${game.teams.away.leagueRecord.wins}-${game.teams.away.leagueRecord.losses}
-    
-    Venue: ${game.venue.name}
+    Date: ${game.date}
     
     Please provide:
     1. Win probability for each team
