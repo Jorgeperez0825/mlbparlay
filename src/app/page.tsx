@@ -5,6 +5,11 @@ import { format, addDays, subDays, parseISO } from 'date-fns';
 import { api } from '@/utils/api';
 import DateNavigation from "@/components/DateNavigation";
 
+interface PageProps {
+  params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
 // This is needed for Next.js server components
 async function getGames(date: string) {
   try {
@@ -144,9 +149,7 @@ function EmptyState({ message }: { message: string }) {
 
 export default async function Home({
   searchParams
-}: {
-  searchParams: { date?: string }
-}) {
+}: PageProps) {
   // Track loading and error states
   let isLoading = true;
   let error: string | null = null;
