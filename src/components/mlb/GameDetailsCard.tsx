@@ -4,7 +4,7 @@ import { getTeamLogo } from '@/utils/teamLogos';
 interface Team {
   code: string;
   name: string;
-  score?: number;
+  score: number;
 }
 
 interface GameDetailsCardProps {
@@ -71,7 +71,7 @@ export default function GameDetailsCard({
               )}
             </div>
             <div>
-              <div className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">{awayTeam.score || 0}</div>
+              <div className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">{awayTeam.score}</div>
               <div className="text-[11px] sm:text-xs md:text-sm font-medium text-[var(--text-secondary)]">{awayTeam.name}</div>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function GameDetailsCard({
           {/* Home Team */}
           <div className="flex items-center space-x-2 sm:space-x-3">
             <div>
-              <div className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-right">{homeTeam.score || 0}</div>
+              <div className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-right">{homeTeam.score}</div>
               <div className="text-[11px] sm:text-xs md:text-sm font-medium text-[var(--text-secondary)] text-right">{homeTeam.name}</div>
             </div>
             <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 relative rounded-full bg-gray-50 p-2 shadow-sm transition-transform hover:scale-105">

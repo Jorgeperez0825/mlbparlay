@@ -6,27 +6,29 @@ import GameDetailsCard from './GameDetailsCard';
 interface Team {
   code: string;
   name: string;
-  score?: number;
+  score: number;
+}
+
+interface GameDetails {
+  homeTeam: Team;
+  awayTeam: Team;
+  inning: number;
+  hits: {
+    home: number;
+    away: number;
+  };
+  errors: {
+    home: number;
+    away: number;
+  };
+  startTime: string;
+  status: 'scheduled' | 'live' | 'finished';
 }
 
 interface MobileGameDetailsProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedGame?: {
-    homeTeam: Team;
-    awayTeam: Team;
-    inning: number;
-    hits: {
-      home: number;
-      away: number;
-    };
-    errors: {
-      home: number;
-      away: number;
-    };
-    startTime: string;
-    status: 'scheduled' | 'live' | 'finished';
-  };
+  selectedGame: GameDetails | null;
 }
 
 export default function MobileGameDetails({ isOpen, onClose, selectedGame }: MobileGameDetailsProps) {
