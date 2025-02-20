@@ -6,10 +6,10 @@ import { api } from '@/utils/api';
 import DateNavigation from "@/components/DateNavigation";
 import { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: 'MLB Games',
-  description: 'View MLB games and scores',
-};
+// Define the Props interface with searchParams as a Promise
+interface Props {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
 
 // This is needed for Next.js server components
 async function getGames(date: string) {
@@ -148,21 +148,25 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-export default async function Page({ 
-  searchParams 
-}: { 
-  searchParams: { 
-    date?: string; 
-    [key: string]: string | string[] | undefined; 
-  }; 
-}) {
+export const metadata: Metadata = {
+  title: 'MLB Games',
+  description: 'View MLB games and scores',
+};
+
+// Main Page component
+export default async function Page({ searchParams }: Props) {
+  // Await the searchParams promise to get the actual search parameters
+  const resolvedSearchParams = await searchParams;
+
   // Track loading and error states
   let isLoading = true;
   let error: string | null = null;
 
-  // Get the date from URL params or use today
+  // Get the date from resolved search params or use today
   const today = new Date();
-  const dateParam = typeof searchParams?.date === 'string' ? searchParams.date : undefined;
+  const dateParam = Array.isArray(resolvedSearchParams.date)
+    ? resolvedSearchParams.date[0]
+    : resolvedSearchParams.date;
   const selectedDate = dateParam ? parseISO(dateParam) : today;
   const formattedSelectedDate = format(selectedDate, 'yyyy-MM-dd');
   const seasonYear = getSeasonYear(selectedDate);
