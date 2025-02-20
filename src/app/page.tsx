@@ -8,7 +8,7 @@ import DateNavigation from "@/components/DateNavigation";
 type SearchParams = { [key: string]: string | string[] | undefined };
 
 interface PageProps {
-  params: {};
+  params: Record<string, never>;
   searchParams: SearchParams;
 }
 
