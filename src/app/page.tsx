@@ -11,13 +11,6 @@ export const metadata: Metadata = {
   description: 'View MLB games and scores',
 };
 
-interface Props {
-  searchParams: {
-    date?: string;
-    [key: string]: string | string[] | undefined;
-  };
-}
-
 // This is needed for Next.js server components
 async function getGames(date: string) {
   try {
@@ -155,7 +148,14 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-export default async function Page({ searchParams }: any) {
+export default async function Page({ 
+  searchParams 
+}: { 
+  searchParams: { 
+    date?: string; 
+    [key: string]: string | string[] | undefined; 
+  }; 
+}) {
   // Track loading and error states
   let isLoading = true;
   let error: string | null = null;
