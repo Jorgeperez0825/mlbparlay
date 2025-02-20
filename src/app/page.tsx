@@ -3,11 +3,6 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { CalendarIcon } from 'lucide-react';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { api } from '@/utils/api';
-import { Loader2 } from 'lucide-react';
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import DateNavigation from "@/components/DateNavigation";
 
 // This is needed for Next.js server components
