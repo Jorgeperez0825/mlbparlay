@@ -79,6 +79,7 @@ export const api = {
       end_date?: string;
       per_page?: number;
       page?: number;
+      season_type?: 'spring' | 'regular';
     }) => {
       try {
         const searchParams = new URLSearchParams();
@@ -90,6 +91,7 @@ export const api = {
         if (params?.end_date) searchParams.append('end_date', params.end_date);
         if (params?.per_page) searchParams.append('per_page', params.per_page.toString());
         if (params?.page) searchParams.append('page', params.page.toString());
+        if (params?.season_type) searchParams.append('season_type', params.season_type);
         
         const queryString = searchParams.toString();
         const url = queryString ? `/games?${queryString}` : '/games';
