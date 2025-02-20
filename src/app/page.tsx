@@ -5,13 +5,6 @@ import { format, addDays, subDays, parseISO } from 'date-fns';
 import { api } from '@/utils/api';
 import DateNavigation from "@/components/DateNavigation";
 
-type SearchParams = { [key: string]: string | string[] | undefined };
-
-interface PageProps {
-  params: Record<string, never>;
-  searchParams: SearchParams;
-}
-
 // This is needed for Next.js server components
 async function getGames(date: string) {
   try {
@@ -150,15 +143,17 @@ function EmptyState({ message }: { message: string }) {
 }
 
 export default async function Home({
-  searchParams
-}: PageProps) {
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   // Track loading and error states
   let isLoading = true;
   let error: string | null = null;
 
   // Get the date from URL params or use today
   const today = new Date();
-  const dateParam = typeof searchParams.date === 'string' ? searchParams.date : undefined;
+  const dateParam = typeof searchParams?.date === 'string' ? searchParams.date : undefined;
   const selectedDate = dateParam ? parseISO(dateParam) : today;
   const formattedSelectedDate = format(selectedDate, 'yyyy-MM-dd');
   const seasonYear = getSeasonYear(selectedDate);
