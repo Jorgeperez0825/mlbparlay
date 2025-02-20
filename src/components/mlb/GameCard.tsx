@@ -47,8 +47,8 @@ export default function GameCard({
   };
 
   // Determine winning team
-  const homeTeamWinning = homeTeam.score > (awayTeam.score ?? 0);
-  const awayTeamWinning = awayTeam.score > (homeTeam.score ?? 0);
+  const homeTeamWinning = (homeTeam.score ?? 0) > (awayTeam.score ?? 0);
+  const awayTeamWinning = (awayTeam.score ?? 0) > (homeTeam.score ?? 0);
   const scoreDiff = getScoreDiff();
 
   return (
