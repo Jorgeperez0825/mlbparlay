@@ -7,15 +7,12 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 interface CalendarProps {
-  mode?: "single"
   selected?: Date
   onSelect?: (date: Date | undefined) => void
   className?: string
-  initialFocus?: boolean
 }
 
 export function Calendar({
-  mode = "single",
   selected,
   onSelect,
   className,
@@ -69,7 +66,7 @@ export function Calendar({
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1">
-        {days.map((day, index) => {
+        {days.map((day) => {
           const isSelected = selected ? isSameDay(day, selected) : false
           const isCurrentMonth = isSameMonth(day, currentMonth)
           

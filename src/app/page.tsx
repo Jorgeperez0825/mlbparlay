@@ -1,6 +1,6 @@
 import GameCard from "@/components/mlb/GameCard";
 import * as Tabs from '@radix-ui/react-tabs';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { api } from '@/utils/api';
 import { Loader2 } from 'lucide-react';
