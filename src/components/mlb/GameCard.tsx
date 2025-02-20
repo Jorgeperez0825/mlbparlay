@@ -18,6 +18,7 @@ interface GameCardProps {
   venue?: string;
   period?: number;
   date?: string;
+  onClick?: () => void;
 }
 
 export default function GameCard({ 
@@ -27,7 +28,8 @@ export default function GameCard({
   status,
   venue,
   period,
-  date
+  date,
+  onClick
 }: GameCardProps) {
   const isLive = status === 'live';
   const isFinished = status === 'finished';
@@ -54,7 +56,10 @@ export default function GameCard({
   return (
     <HoverCard.Root>
       <HoverCard.Trigger asChild>
-        <div className="group p-4 rounded-lg bg-white hover:bg-[var(--accent-color)] transition-all cursor-pointer border border-[var(--border-color)] shadow-sm hover:shadow-md">
+        <div 
+          className="group p-4 rounded-lg bg-white hover:bg-[var(--accent-color)] transition-all cursor-pointer border border-[var(--border-color)] shadow-sm hover:shadow-md"
+          onClick={onClick}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 flex-1">
               {/* Game Status Section */}

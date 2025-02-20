@@ -1,11 +1,13 @@
 import GameCard from "@/components/mlb/GameCard";
 import GameDetailsCard from "@/components/mlb/GameDetailsCard";
+import MobileGameDetails from "@/components/mlb/MobileGameDetails";
 import * as Tabs from '@radix-ui/react-tabs';
 import { CalendarIcon } from 'lucide-react';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { api } from '@/utils/api';
 import DateNavigation from "@/components/DateNavigation";
 import { Metadata } from "next";
+import GamesContent from '@/components/mlb/GamesContent';
 
 // Define the Props interface with searchParams as a Promise
 interface Props {
@@ -260,198 +262,13 @@ export default async function Page({ searchParams }: Props) {
   }) : [];
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 px-4 max-w-[1920px] mx-auto">
-        {/* Left Sidebar - Leagues/Favorites */}
-        <aside className="hidden md:block md:col-span-2">
-          <div className="card p-4 sticky top-4 rounded-xl shadow-sm bg-white/95 backdrop-blur-sm">
-            <h2 className="text-sm font-semibold mb-3">Leagues</h2>
-            <nav className="space-y-1.5">
-              <a href="#" className="block px-3 py-2 rounded-lg bg-black text-white font-medium text-sm hover:bg-black/90 transition-colors">
-                MLB
-              </a>
-            </nav>
-          </div>
-        </aside>
-
-        {/* Main Content - Games */}
-        <main className="col-span-1 md:col-span-7">
-          <div className="card rounded-xl shadow-sm bg-white/95 backdrop-blur-sm overflow-hidden">
-            {/* Date Navigation */}
-            <DateNavigation
-              selectedDate={selectedDate}
-              previousDate={previousDate}
-              nextDate={nextDate}
-            />
-
-            {/* Loading State */}
-            {isLoading && (
-              <div className="p-4 space-y-4">
-                <LoadingCard />
-                <LoadingCard />
-                <LoadingCard />
-              </div>
-            )}
-
-            {/* Error State */}
-            {error && !isLoading && (
-              <div className="p-4">
-                <ErrorMessage message={error} />
-              </div>
-            )}
-
-            {/* Games Content */}
-            {!isLoading && !error && (
-              <Tabs.Root defaultValue="all" className="flex flex-col">
-                <Tabs.List className="flex border-b border-[var(--border-color)] overflow-x-auto px-1">
-                  <Tabs.Trigger
-                    value="all"
-                    className="flex-1 min-w-[100px] px-4 py-3 text-sm font-medium text-center transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black text-[var(--text-secondary)] hover:text-black"
-                  >
-                    All Games ({games.length})
-                  </Tabs.Trigger>
-                  <Tabs.Trigger
-                    value="live"
-                    className="flex-1 min-w-[100px] px-4 py-3 text-sm font-medium text-center transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black text-[var(--text-secondary)] hover:text-black"
-                  >
-                    <div className="flex items-center justify-center space-x-2">
-                      {games.filter(game => game.status === 'live').length > 0 && (
-                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
-                      )}
-                      <span>Live ({games.filter(game => game.status === 'live').length})</span>
-                    </div>
-                  </Tabs.Trigger>
-                  <Tabs.Trigger
-                    value="finished"
-                    className="flex-1 min-w-[100px] px-4 py-3 text-sm font-medium text-center transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black text-[var(--text-secondary)] hover:text-black"
-                  >
-                    Finished ({games.filter(game => game.status === 'finished').length})
-                  </Tabs.Trigger>
-                </Tabs.List>
-
-                <Tabs.Content value="all" className="p-4 space-y-3">
-                  {games.length > 0 ? (
-                    games.map((game) => (
-                      <GameCard key={game.id} {...game} />
-                    ))
-                  ) : (
-                    <EmptyState message={`No games scheduled for ${format(selectedDate, 'MMMM d, yyyy')}`} />
-                  )}
-                </Tabs.Content>
-
-                <Tabs.Content value="live" className="p-4 space-y-3">
-                  {games.filter(game => game.status === 'live').length > 0 ? (
-                    games.filter(game => game.status === 'live').map((game) => (
-                      <GameCard key={game.id} {...game} />
-                    ))
-                  ) : (
-                    <EmptyState message="No live games at the moment" />
-                  )}
-                </Tabs.Content>
-
-                <Tabs.Content value="finished" className="p-4 space-y-3">
-                  {games.filter(game => game.status === 'finished').length > 0 ? (
-                    games.filter(game => game.status === 'finished').map((game) => (
-                      <GameCard key={game.id} {...game} />
-                    ))
-                  ) : (
-                    <EmptyState message="No finished games yet" />
-                  )}
-                </Tabs.Content>
-              </Tabs.Root>
-            )}
-          </div>
-        </main>
-
-        {/* Right Sidebar - Game Details (Desktop) */}
-        <aside className="hidden md:block md:col-span-3 md:relative">
-          <div className="fixed w-[calc((100vw-2rem)/12*3)] max-w-md">
-            <GameDetailsCard
-              homeTeam={{
-                code: "LAD",
-                name: "Dodgers",
-                score: 0
-              }}
-              awayTeam={{
-                code: "CHC",
-                name: "Cubs",
-                score: 0
-              }}
-              inning={2}
-              hits={{
-                home: 0,
-                away: 3
-              }}
-              errors={{
-                home: 0,
-                away: 0
-              }}
-              startTime="Today 3:05 PM"
-              status="live"
-            />
-          </div>
-        </aside>
-      </div>
-
-      {/* Mobile Game Details Sheet */}
-      <div className="md:hidden fixed inset-0 z-50">
-        <div 
-          className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300"
-          aria-hidden="true"
-        />
-        <div 
-          className="absolute inset-x-0 bottom-0 transform transition-all duration-300 ease-out"
-          style={{
-            maxHeight: 'calc(100vh - 2rem)',
-            height: '85vh'
-          }}
-        >
-          <div className="bg-white rounded-t-2xl h-full flex flex-col">
-            {/* Drag Handle */}
-            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm pt-3 pb-2 px-4 rounded-t-2xl border-b border-[var(--border-color)]">
-              <div className="flex justify-center mb-1">
-                <div className="w-12 h-1 rounded-full bg-gray-200"></div>
-              </div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold">Game Details</h3>
-                <button className="p-1.5 rounded-lg hover:bg-gray-100 text-[var(--text-secondary)]">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto overscroll-contain">
-              <GameDetailsCard
-                homeTeam={{
-                  code: "LAD",
-                  name: "Dodgers",
-                  score: 0
-                }}
-                awayTeam={{
-                  code: "CHC",
-                  name: "Cubs",
-                  score: 0
-                }}
-                inning={2}
-                hits={{
-                  home: 0,
-                  away: 3
-                }}
-                errors={{
-                  home: 0,
-                  away: 0
-                }}
-                startTime="Today 3:05 PM"
-                status="live"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+    <GamesContent
+      games={games}
+      isLoading={isLoading}
+      error={error}
+      selectedDate={selectedDate}
+      previousDate={previousDate}
+      nextDate={nextDate}
+    />
   );
 }
