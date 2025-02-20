@@ -5,9 +5,11 @@ import { format, addDays, subDays, parseISO } from 'date-fns';
 import { api } from '@/utils/api';
 import DateNavigation from "@/components/DateNavigation";
 
+type SearchParams = { [key: string]: string | string[] | undefined };
+
 interface PageProps {
-  params: { slug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: {};
+  searchParams: SearchParams;
 }
 
 // This is needed for Next.js server components
@@ -156,7 +158,8 @@ export default async function Home({
 
   // Get the date from URL params or use today
   const today = new Date();
-  const selectedDate = searchParams.date ? parseISO(searchParams.date) : today;
+  const dateParam = typeof searchParams.date === 'string' ? searchParams.date : undefined;
+  const selectedDate = dateParam ? parseISO(dateParam) : today;
   const formattedSelectedDate = format(selectedDate, 'yyyy-MM-dd');
   const seasonYear = getSeasonYear(selectedDate);
 
