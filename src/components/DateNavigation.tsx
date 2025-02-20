@@ -40,14 +40,12 @@ export default function DateNavigation({ selectedDate, previousDate, nextDate }:
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="center">
             <Calendar
-              mode="single"
               selected={selectedDate}
               onSelect={(date) => {
                 if (date) {
                   window.location.href = `/?date=${format(date, 'yyyy-MM-dd')}`;
                 }
               }}
-              initialFocus
             />
           </PopoverContent>
         </Popover>
