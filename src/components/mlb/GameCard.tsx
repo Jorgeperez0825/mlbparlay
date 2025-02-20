@@ -1,5 +1,7 @@
 import * as HoverCard from '@radix-ui/react-hover-card';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, MapPin, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
+import { getTeamLogo } from '@/utils/teamLogos';
 
 interface Team {
   code: string;
@@ -8,95 +10,233 @@ interface Team {
 }
 
 interface GameCardProps {
+  id: number;
   startTime: string;
   homeTeam: Team;
   awayTeam: Team;
   status: 'scheduled' | 'live' | 'finished';
+  venue?: string;
+  period?: number;
+  date?: string;
 }
 
-export default function GameCard({ startTime, homeTeam, awayTeam, status }: GameCardProps) {
+export default function GameCard({ 
+  startTime, 
+  homeTeam, 
+  awayTeam, 
+  status,
+  venue,
+  period,
+  date
+}: GameCardProps) {
   const isLive = status === 'live';
   const isFinished = status === 'finished';
+
+  // Format period display
+  const periodDisplay = period ? `${period}${getOrdinalSuffix(period)} Inn.` : '1st Inn.';
+
+  // Get team logos
+  const homeLogo = getTeamLogo(homeTeam.code);
+  const awayLogo = getTeamLogo(awayTeam.code);
+
+  // Get score differential for the winning team (if game is live or finished)
+  const getScoreDiff = () => {
+    if (!homeTeam.score || !awayTeam.score) return null;
+    const diff = Math.abs(homeTeam.score - awayTeam.score);
+    return `+${diff}`;
+  };
+
+  // Determine winning team
+  const homeTeamWinning = homeTeam.score > (awayTeam.score ?? 0);
+  const awayTeamWinning = awayTeam.score > (homeTeam.score ?? 0);
+  const scoreDiff = getScoreDiff();
 
   return (
     <HoverCard.Root>
       <HoverCard.Trigger asChild>
-        <div className="p-4 rounded-lg bg-white hover:bg-[var(--accent-color)] transition-all cursor-pointer border border-[var(--border-color)] shadow-sm">
+        <div className="group p-4 rounded-lg bg-white hover:bg-[var(--accent-color)] transition-all cursor-pointer border border-[var(--border-color)] shadow-sm hover:shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 flex-1">
+              {/* Game Status Section */}
               <div className="flex flex-col items-center justify-center w-16 h-full border-r border-[var(--border-color)] pr-4">
                 {isLive ? (
                   <>
-                    <span className="text-red-500 text-xs font-semibold">● LIVE</span>
-                    <span className="text-[var(--text-secondary)] text-xs mt-1">3rd Inn.</span>
+                    <div className="flex items-center space-x-1">
+                      <span className="animate-pulse relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                      </span>
+                      <span className="text-red-500 text-xs font-semibold">LIVE</span>
+                    </div>
+                    <span className="text-[var(--text-secondary)] text-xs mt-2 font-medium">{periodDisplay}</span>
                   </>
                 ) : isFinished ? (
                   <>
-                    <span className="text-[var(--text-secondary)] text-xs">Final</span>
-                    <Clock className="w-4 h-4 text-[var(--text-secondary)] mt-1" />
+                    <span className="text-[var(--text-secondary)] text-xs font-medium">Final</span>
+                    <Clock className="w-4 h-4 text-[var(--text-secondary)] mt-2" />
                   </>
                 ) : (
                   <>
-                    <span className="text-[var(--text-secondary)] text-xs">{startTime}</span>
-                    <Calendar className="w-4 h-4 text-[var(--text-secondary)] mt-1" />
+                    <span className="text-[var(--text-secondary)] text-xs font-medium">{startTime}</span>
+                    <Calendar className="w-4 h-4 text-[var(--text-secondary)] mt-2" />
                   </>
                 )}
               </div>
-              <div className="flex-1">
+
+              {/* Teams Section */}
+              <div className="flex-1 min-w-0">
+                {/* Away Team */}
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-[var(--accent-color)] rounded-full flex items-center justify-center border border-[var(--border-color)]">
-                    <span className="text-xs font-bold text-black">{awayTeam.code}</span>
+                  <div className={`w-10 h-10 bg-white rounded-full flex items-center justify-center border-2 transition-colors ${awayTeamWinning ? 'border-green-500' : 'border-[var(--border-color)]'} overflow-hidden group-hover:shadow-sm`}>
+                    {awayLogo ? (
+                      <Image
+                        src={awayLogo}
+                        alt={`${awayTeam.name} logo`}
+                        width={28}
+                        height={28}
+                        className="w-7 h-7 object-contain transition-transform group-hover:scale-110"
+                      />
+                    ) : (
+                      <span className="text-sm font-bold text-black">{awayTeam.code}</span>
+                    )}
                   </div>
-                  <span className="text-[var(--text-secondary)]">{awayTeam.name}</span>
-                  <span className="text-lg font-semibold ml-auto text-black">{awayTeam.score ?? '-'}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[var(--text-secondary)] block truncate">{awayTeam.name}</span>
+                    {awayTeamWinning && scoreDiff && (isLive || isFinished) && (
+                      <span className="text-xs text-green-500 font-medium">Up by {scoreDiff}</span>
+                    )}
+                  </div>
+                  <span className={`text-lg font-semibold ${awayTeamWinning ? 'text-green-500' : 'text-black'}`}>
+                    {awayTeam.score ?? '-'}
+                  </span>
                 </div>
+
+                {/* Home Team */}
                 <div className="flex items-center space-x-3 mt-3">
-                  <div className="w-8 h-8 bg-[var(--accent-color)] rounded-full flex items-center justify-center border border-[var(--border-color)]">
-                    <span className="text-xs font-bold text-black">{homeTeam.code}</span>
+                  <div className={`w-10 h-10 bg-white rounded-full flex items-center justify-center border-2 transition-colors ${homeTeamWinning ? 'border-green-500' : 'border-[var(--border-color)]'} overflow-hidden group-hover:shadow-sm`}>
+                    {homeLogo ? (
+                      <Image
+                        src={homeLogo}
+                        alt={`${homeTeam.name} logo`}
+                        width={28}
+                        height={28}
+                        className="w-7 h-7 object-contain transition-transform group-hover:scale-110"
+                      />
+                    ) : (
+                      <span className="text-sm font-bold text-black">{homeTeam.code}</span>
+                    )}
                   </div>
-                  <span className="text-[var(--text-secondary)]">{homeTeam.name}</span>
-                  <span className="text-lg font-semibold ml-auto text-black">{homeTeam.score ?? '-'}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[var(--text-secondary)] block truncate">{homeTeam.name}</span>
+                    {homeTeamWinning && scoreDiff && (isLive || isFinished) && (
+                      <span className="text-xs text-green-500 font-medium">Up by {scoreDiff}</span>
+                    )}
+                  </div>
+                  <span className={`text-lg font-semibold ${homeTeamWinning ? 'text-green-500' : 'text-black'}`}>
+                    {homeTeam.score ?? '-'}
+                  </span>
                 </div>
+              </div>
+
+              {/* Arrow indicator */}
+              <div className="ml-4 text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity">
+                <ChevronRight className="w-5 h-5" />
               </div>
             </div>
           </div>
           
-          {isLive && (
+          {/* Game Info Footer */}
+          {(isLive || venue) && (
             <div className="mt-3 pt-3 border-t border-[var(--border-color)] flex items-center justify-between text-xs text-[var(--text-secondary)]">
-              <span>P: J. deGrom</span>
-              <span>Bases loaded</span>
-              <span>Count: 2-2</span>
+              {isLive && <span className="font-medium">{periodDisplay}</span>}
+              {venue && (
+                <div className="flex items-center space-x-1">
+                  <MapPin className="w-3 h-3" />
+                  <span>{venue}</span>
+                </div>
+              )}
+              {date && <span>{date}</span>}
             </div>
           )}
         </div>
       </HoverCard.Trigger>
+
+      {/* Hover Card Content */}
       <HoverCard.Portal>
         <HoverCard.Content
           className="w-80 rounded-lg bg-white p-4 shadow-lg border border-[var(--border-color)]"
           sideOffset={5}
         >
-          <div className="space-y-3">
-            <h3 className="font-semibold text-sm text-black">Game Details</h3>
+          <div className="space-y-4">
+            {/* Header with Logos */}
+            <div className="flex items-center justify-center space-x-4">
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-[var(--border-color)] overflow-hidden">
+                  {awayLogo ? (
+                    <Image
+                      src={awayLogo}
+                      alt={`${awayTeam.name} logo`}
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 object-contain"
+                    />
+                  ) : (
+                    <span className="text-sm font-bold text-black">{awayTeam.code}</span>
+                  )}
+                </div>
+                <span className="text-sm font-medium mt-1">{awayTeam.name}</span>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-[var(--text-secondary)] mb-1">VS</div>
+                {(isLive || isFinished) && (
+                  <div className="text-lg font-bold">
+                    {awayTeam.score} - {homeTeam.score}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-[var(--border-color)] overflow-hidden">
+                  {homeLogo ? (
+                    <Image
+                      src={homeLogo}
+                      alt={`${homeTeam.name} logo`}
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 object-contain"
+                    />
+                  ) : (
+                    <span className="text-sm font-bold text-black">{homeTeam.code}</span>
+                  )}
+                </div>
+                <span className="text-sm font-medium mt-1">{homeTeam.name}</span>
+              </div>
+            </div>
+
+            {/* Game Details */}
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-[var(--text-secondary)]">Venue</span>
-                <span className="text-black">Yankee Stadium</span>
+              <div className="flex justify-between items-center py-1 border-b border-[var(--border-color)]">
+                <span className="text-[var(--text-secondary)]">Status</span>
+                <span className={`font-medium ${isLive ? 'text-red-500' : 'text-black'}`}>
+                  {isLive ? 'Live' : isFinished ? 'Final' : 'Scheduled'}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-secondary)]">Weather</span>
-                <span className="text-black">72°F, Clear</span>
-              </div>
+              {venue && (
+                <div className="flex justify-between items-center py-1 border-b border-[var(--border-color)]">
+                  <span className="text-[var(--text-secondary)]">Venue</span>
+                  <span className="font-medium text-black">{venue}</span>
+                </div>
+              )}
+              {date && (
+                <div className="flex justify-between items-center py-1 border-b border-[var(--border-color)]">
+                  <span className="text-[var(--text-secondary)]">Date</span>
+                  <span className="font-medium text-black">{date}</span>
+                </div>
+              )}
               {isLive && (
-                <>
-                  <div className="flex justify-between">
-                    <span className="text-[var(--text-secondary)]">At Bat</span>
-                    <span className="text-black">Aaron Judge</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[var(--text-secondary)]">Pitcher</span>
-                    <span className="text-black">Jacob deGrom</span>
-                  </div>
-                </>
+                <div className="flex justify-between items-center py-1 border-b border-[var(--border-color)]">
+                  <span className="text-[var(--text-secondary)]">Current Inning</span>
+                  <span className="font-medium text-black">{periodDisplay}</span>
+                </div>
               )}
             </div>
           </div>
@@ -105,4 +245,11 @@ export default function GameCard({ startTime, homeTeam, awayTeam, status }: Game
       </HoverCard.Portal>
     </HoverCard.Root>
   );
+}
+
+// Helper function to add ordinal suffix to numbers (1st, 2nd, 3rd, etc.)
+function getOrdinalSuffix(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
 } 
