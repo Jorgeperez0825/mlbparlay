@@ -3,8 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary-color: #ffffff;
+  --secondary-color: #f8f9fa;
+  --accent-color: #e9ecef;
+  --text-primary: #000000;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,7 +19,21 @@
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  background-color: var(--primary-color);
+  color: var(--text-primary);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .nav-link {
+    @apply px-4 py-2 text-sm text-gray-600 hover:text-black transition-colors;
+  }
+  
+  .card {
+    @apply bg-[var(--secondary-color)] rounded-lg border border-[var(--border-color)] shadow-sm;
+  }
+  
+  .section-title {
+    @apply text-lg font-semibold mb-4 text-black;
+  }
 }
