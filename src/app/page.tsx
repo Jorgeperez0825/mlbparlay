@@ -1,11 +1,5 @@
-import GameCard from "@/components/mlb/GameCard";
-import GameDetailsCard from "@/components/mlb/GameDetailsCard";
-import MobileGameDetails from "@/components/mlb/MobileGameDetails";
-import * as Tabs from '@radix-ui/react-tabs';
-import { CalendarIcon } from 'lucide-react';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { api } from '@/utils/api';
-import DateNavigation from "@/components/DateNavigation";
 import { Metadata } from "next";
 import GamesContent from '@/components/mlb/GamesContent';
 
@@ -105,50 +99,6 @@ async function testApiConnection() {
     }
     return null;
   }
-}
-
-// Loading component
-function LoadingCard() {
-  return (
-    <div className="p-4 rounded-lg bg-white border border-[var(--border-color)] animate-pulse">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-12 bg-gray-200 rounded"></div>
-          <div className="space-y-3 flex-1">
-            <div className="h-4 bg-gray-200 rounded w-24"></div>
-            <div className="h-4 bg-gray-200 rounded w-32"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Error message component
-function ErrorMessage({ message }: { message: string }) {
-  return (
-    <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-      <div className="flex items-center space-x-2 text-red-600">
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span className="text-sm font-medium">{message}</span>
-      </div>
-    </div>
-  );
-}
-
-// Empty state component
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="p-8 text-center">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-        <CalendarIcon className="w-8 h-8 text-gray-400" />
-      </div>
-      <h3 className="text-sm font-medium text-gray-900 mb-1">{message}</h3>
-      <p className="text-sm text-gray-500">Check back later for updates.</p>
-    </div>
-  );
 }
 
 export const metadata: Metadata = {

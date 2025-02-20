@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -9,23 +9,37 @@ import GameDetailsCard from './GameDetailsCard';
 import MobileGameDetails from './MobileGameDetails';
 import DateNavigation from '@/components/DateNavigation';
 
+interface Team {
+  code: string;
+  name: string;
+  score: number;
+}
+
 interface Game {
   id: number;
   startTime: string;
-  homeTeam: {
-    code: string;
-    name: string;
-    score: number;
-  };
-  awayTeam: {
-    code: string;
-    name: string;
-    score: number;
-  };
+  homeTeam: Team;
+  awayTeam: Team;
   status: 'scheduled' | 'live' | 'finished';
   venue?: string;
   period?: number;
   date?: string;
+}
+
+interface GameDetails {
+  homeTeam: Team;
+  awayTeam: Team;
+  inning: number;
+  hits: {
+    home: number;
+    away: number;
+  };
+  errors: {
+    home: number;
+    away: number;
+  };
+  startTime: string;
+  status: 'scheduled' | 'live' | 'finished';
 }
 
 interface Props {
@@ -82,7 +96,7 @@ function EmptyState({ message }: { message: string }) {
 }
 
 export default function GamesContent({ games, isLoading, error, selectedDate, previousDate, nextDate }: Props) {
-  const [selectedGame, setSelectedGame] = useState<any>(null);
+  const [selectedGame, setSelectedGame] = useState<GameDetails | null>(null);
   const [isMobileDetailsOpen, setIsMobileDetailsOpen] = useState(false);
 
   const handleGameClick = (game: Game) => {
