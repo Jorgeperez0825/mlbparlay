@@ -1,12 +1,116 @@
 import Image from 'next/image';
 import { getTeamLogo } from '@/utils/teamLogos';
 import * as Tabs from '@radix-ui/react-tabs';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Team {
   code: string;
   name: string;
   score: number;
+}
+
+interface Player {
+  id: string;
+  name: string;
+  position: string;
+  stats?: {
+    avg?: number;
+    hr?: number;
+    rbi?: number;
+    era?: number;
+    wins?: number;
+    losses?: number;
+  };
+}
+
+interface GameStats {
+  hits: number;
+  errors: number;
+  runs: number;
+  leftOnBase: number;
+  atBats: number;
+  strikeouts: number;
+}
+
+interface Pitcher {
+  id: string;
+  name: string;
+  stats: {
+    era: number;
+    wins: number;
+    losses: number;
+    inningsPitched: number;
+    strikeouts: number;
+  };
+}
+
+interface VenueInfo {
+  name: string;
+  location: string;
+  weather?: {
+    condition: string;
+    temperature: number;
+    wind: string;
+  };
+  capacity: number;
+  attendance?: number;
+}
+
+interface TeamRecord {
+  wins: number;
+  losses: number;
+  last10: string;
+  streak: string;
+  divisionRank: number;
+  divisionGamesBack: number;
+  winningPercentage: number;
+}
+
+interface MatchResult {
+  date: string;
+  homeTeam: {
+    code: string;
+    name: string;
+    score: number;
+  };
+  awayTeam: {
+    code: string;
+    name: string;
+    score: number;
+  };
+  venue: string;
+  status: 'finished';
+}
+
+interface DetailedGameInfo {
+  id: string;
+  startTime: string;
+  status: 'scheduled' | 'live' | 'finished';
+  inning: number;
+  isTopInning?: boolean;
+  homeTeam: {
+    ...Team;
+    probablePitcher?: Pitcher;
+    stats: GameStats;
+    record: TeamRecord;
+    lineup?: Player[];
+    recentResults: MatchResult[];
+  };
+  awayTeam: {
+    ...Team;
+    probablePitcher?: Pitcher;
+    stats: GameStats;
+    record: TeamRecord;
+    lineup?: Player[];
+    recentResults: MatchResult[];
+  };
+  venue: VenueInfo;
+  headToHead: {
+    homeTeamWins: number;
+    awayTeamWins: number;
+    draws: number;
+    recentGames: MatchResult[];
+  };
 }
 
 interface GameDetailsCardProps {
@@ -23,10 +127,21 @@ interface GameDetailsCardProps {
   };
   startTime: string;
   status: 'scheduled' | 'live' | 'finished';
+  gameId: string;
 }
 
 // Details Tab Content
-function DetailsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) {
+function DetailsTab({ gameDetails }: { gameDetails: DetailedGameInfo | null }) {
+  if (!gameDetails) {
+    return (
+      <div className="py-4 text-center text-sm text-[var(--text-secondary)]">
+        Loading game details...
+      </div>
+    );
+  }
+
+  const { homeTeam, awayTeam, venue } = gameDetails;
+
   return (
     <div className="py-4">
       <div className="space-y-4">
@@ -36,11 +151,31 @@ function DetailsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) 
           <div className="grid grid-cols-2 gap-4">
             <div className="text-sm">
               <div className="font-medium">{awayTeam.name}</div>
-              <div className="text-[var(--text-secondary)]">TBD</div>
+              {awayTeam.probablePitcher ? (
+                <div>
+                  <div className="font-medium text-black">{awayTeam.probablePitcher.name}</div>
+                  <div className="text-[var(--text-secondary)]">
+                    {awayTeam.probablePitcher.stats.wins}-{awayTeam.probablePitcher.stats.losses}, 
+                    {awayTeam.probablePitcher.stats.era.toFixed(2)} ERA
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[var(--text-secondary)]">TBD</div>
+              )}
             </div>
             <div className="text-sm">
               <div className="font-medium">{homeTeam.name}</div>
-              <div className="text-[var(--text-secondary)]">TBD</div>
+              {homeTeam.probablePitcher ? (
+                <div>
+                  <div className="font-medium text-black">{homeTeam.probablePitcher.name}</div>
+                  <div className="text-[var(--text-secondary)]">
+                    {homeTeam.probablePitcher.stats.wins}-{homeTeam.probablePitcher.stats.losses}, 
+                    {homeTeam.probablePitcher.stats.era.toFixed(2)} ERA
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[var(--text-secondary)]">TBD</div>
+              )}
             </div>
           </div>
         </div>
@@ -51,19 +186,27 @@ function DetailsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) 
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-[var(--text-secondary)]">Stadium</span>
-              <span className="font-medium">TBD</span>
+              <span className="font-medium">{venue.name}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-[var(--text-secondary)]">Weather</span>
-              <span className="font-medium">TBD</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[var(--text-secondary)]">Wind</span>
-              <span className="font-medium">TBD</span>
-            </div>
+            {venue.weather && (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-secondary)]">Weather</span>
+                  <span className="font-medium">
+                    {venue.weather.condition}, {venue.weather.temperature}°F
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-secondary)]">Wind</span>
+                  <span className="font-medium">{venue.weather.wind}</span>
+                </div>
+              </>
+            )}
             <div className="flex justify-between">
               <span className="text-[var(--text-secondary)]">Attendance</span>
-              <span className="font-medium">TBD</span>
+              <span className="font-medium">
+                {venue.attendance ? venue.attendance.toLocaleString() : 'TBD'}
+              </span>
             </div>
           </div>
         </div>
@@ -72,60 +215,40 @@ function DetailsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) 
         <div>
           <h3 className="text-sm font-semibold mb-2">Last 5 Games</h3>
           <div className="space-y-4">
-            <div>
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-6 h-6 relative">
-                  <Image
-                    src={getTeamLogo(awayTeam.code) || ''}
-                    alt={awayTeam.name}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <span className="text-sm font-medium">{awayTeam.name}</span>
-              </div>
-              <div className="flex space-x-1">
-                {['W', 'L', 'W', 'L', 'W'].map((result, i) => (
-                  <div
-                    key={i}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                      result === 'W'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}
-                  >
-                    {result}
+            {[awayTeam, homeTeam].map((team, index) => (
+              <div key={index}>
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-6 h-6 relative">
+                    <Image
+                      src={getTeamLogo(team.code) || ''}
+                      alt={team.name}
+                      fill
+                      className="object-contain"
+                      sizes="24px"
+                    />
                   </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-6 h-6 relative">
-                  <Image
-                    src={getTeamLogo(homeTeam.code) || ''}
-                    alt={homeTeam.name}
-                    fill
-                    className="object-contain"
-                  />
+                  <span className="text-sm font-medium">{team.name}</span>
                 </div>
-                <span className="text-sm font-medium">{homeTeam.name}</span>
+                <div className="flex space-x-1">
+                  {team.recentResults.slice(0, 5).map((result, i) => {
+                    const isWin = (result.homeTeam.code === team.code && result.homeTeam.score > result.awayTeam.score) ||
+                                (result.awayTeam.code === team.code && result.awayTeam.score > result.homeTeam.score);
+                    return (
+                      <div
+                        key={i}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                          isWin
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {isWin ? 'W' : 'L'}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="flex space-x-1">
-                {['L', 'W', 'W', 'L', 'W'].map((result, i) => (
-                  <div
-                    key={i}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                      result === 'W'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}
-                  >
-                    {result}
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -134,7 +257,21 @@ function DetailsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) 
 }
 
 // Statistics Tab Content
-function StatisticsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) {
+function StatisticsTab({ gameDetails }: { gameDetails: DetailedGameInfo | null }) {
+  if (!gameDetails) {
+    return (
+      <div className="py-4 text-center text-sm text-[var(--text-secondary)]">
+        Loading statistics...
+      </div>
+    );
+  }
+
+  const { homeTeam, awayTeam } = gameDetails;
+
+  // Calculate batting averages
+  const homeAvg = (homeTeam.stats.hits / homeTeam.stats.atBats).toFixed(3);
+  const awayAvg = (awayTeam.stats.hits / awayTeam.stats.atBats).toFixed(3);
+
   return (
     <div className="py-4">
       <div className="space-y-6">
@@ -143,57 +280,87 @@ function StatisticsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team 
           <h3 className="text-sm font-semibold mb-3">Team Statistics</h3>
           <div className="space-y-2">
             <div className="flex items-center">
-              <div className="w-16 text-sm text-right">.275</div>
+              <div className="w-16 text-sm text-right">{awayAvg}</div>
               <div className="flex-1 px-3">
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full w-[27.5%] bg-blue-500 rounded-full"></div>
+                  <div 
+                    className="h-full bg-blue-500 rounded-full"
+                    style={{ width: `${parseFloat(awayAvg) * 100}%` }}
+                  ></div>
                 </div>
               </div>
-              <div className="w-16 text-sm">.268</div>
+              <div className="w-16 text-sm">{homeAvg}</div>
               <div className="w-20 text-sm text-[var(--text-secondary)]">AVG</div>
             </div>
             <div className="flex items-center">
-              <div className="w-16 text-sm text-right">.350</div>
+              <div className="w-16 text-sm text-right">{awayTeam.stats.runs}</div>
               <div className="flex-1 px-3">
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full w-[35%] bg-blue-500 rounded-full"></div>
+                  <div 
+                    className="h-full bg-blue-500 rounded-full"
+                    style={{ 
+                      width: `${(awayTeam.stats.runs / Math.max(awayTeam.stats.runs, homeTeam.stats.runs)) * 100}%` 
+                    }}
+                  ></div>
                 </div>
               </div>
-              <div className="w-16 text-sm">.342</div>
-              <div className="w-20 text-sm text-[var(--text-secondary)]">OBP</div>
+              <div className="w-16 text-sm">{homeTeam.stats.runs}</div>
+              <div className="w-20 text-sm text-[var(--text-secondary)]">RUNS</div>
             </div>
             <div className="flex items-center">
-              <div className="w-16 text-sm text-right">.450</div>
+              <div className="w-16 text-sm text-right">{awayTeam.stats.hits}</div>
               <div className="flex-1 px-3">
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full w-[45%] bg-blue-500 rounded-full"></div>
+                  <div 
+                    className="h-full bg-blue-500 rounded-full"
+                    style={{ 
+                      width: `${(awayTeam.stats.hits / Math.max(awayTeam.stats.hits, homeTeam.stats.hits)) * 100}%` 
+                    }}
+                  ></div>
                 </div>
               </div>
-              <div className="w-16 text-sm">.445</div>
-              <div className="w-20 text-sm text-[var(--text-secondary)]">SLG</div>
+              <div className="w-16 text-sm">{homeTeam.stats.hits}</div>
+              <div className="w-20 text-sm text-[var(--text-secondary)]">HITS</div>
             </div>
           </div>
         </div>
 
-        {/* Batting Leaders */}
-        <div>
-          <h3 className="text-sm font-semibold mb-3">Batting Leaders</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-xs font-medium text-[var(--text-secondary)] mb-2">{awayTeam.name}</div>
-              <div className="space-y-2">
-                <div className="text-sm">
-                  <div className="font-medium">Player Name</div>
-                  <div className="text-[var(--text-secondary)]">.325 AVG, 15 HR, 45 RBI</div>
+        {/* Additional Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <div className="text-xs font-medium text-[var(--text-secondary)] mb-2">{awayTeam.name}</div>
+            <div className="space-y-2">
+              <div className="text-sm">
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-secondary)]">At Bats</span>
+                  <span className="font-medium">{awayTeam.stats.atBats}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-secondary)]">Strikeouts</span>
+                  <span className="font-medium">{awayTeam.stats.strikeouts}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-secondary)]">Left on Base</span>
+                  <span className="font-medium">{awayTeam.stats.leftOnBase}</span>
                 </div>
               </div>
             </div>
-            <div>
-              <div className="text-xs font-medium text-[var(--text-secondary)] mb-2">{homeTeam.name}</div>
-              <div className="space-y-2">
-                <div className="text-sm">
-                  <div className="font-medium">Player Name</div>
-                  <div className="text-[var(--text-secondary)]">.315 AVG, 12 HR, 40 RBI</div>
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[var(--text-secondary)] mb-2">{homeTeam.name}</div>
+            <div className="space-y-2">
+              <div className="text-sm">
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-secondary)]">At Bats</span>
+                  <span className="font-medium">{homeTeam.stats.atBats}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-secondary)]">Strikeouts</span>
+                  <span className="font-medium">{homeTeam.stats.strikeouts}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[var(--text-secondary)]">Left on Base</span>
+                  <span className="font-medium">{homeTeam.stats.leftOnBase}</span>
                 </div>
               </div>
             </div>
@@ -205,13 +372,29 @@ function StatisticsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team 
 }
 
 // Standings Tab Content
-function StandingsTab() {
-  const standings = [
-    { team: 'Team A', w: 45, l: 30, pct: .600, gb: '-', l10: '7-3', streak: 'W3' },
-    { team: 'Team B', w: 42, l: 33, pct: .560, gb: '3.0', l10: '5-5', streak: 'L1' },
-    { team: 'Team C', w: 40, l: 35, pct: .533, gb: '5.0', l10: '6-4', streak: 'W2' },
-    { team: 'Team D', w: 38, l: 37, pct: .507, gb: '7.0', l10: '4-6', streak: 'L2' },
-    { team: 'Team E', w: 35, l: 40, pct: .467, gb: '10.0', l10: '3-7', streak: 'W1' },
+function StandingsTab({ gameDetails }: { gameDetails: DetailedGameInfo | null }) {
+  if (!gameDetails) {
+    return (
+      <div className="py-4 text-center text-sm text-[var(--text-secondary)]">
+        Loading standings...
+      </div>
+    );
+  }
+
+  const { homeTeam, awayTeam } = gameDetails;
+  const teams = [
+    {
+      name: homeTeam.name,
+      code: homeTeam.code,
+      record: homeTeam.record,
+      isParticipant: true
+    },
+    {
+      name: awayTeam.name,
+      code: awayTeam.code,
+      record: awayTeam.record,
+      isParticipant: true
+    }
   ];
 
   return (
@@ -232,15 +415,33 @@ function StandingsTab() {
               </tr>
             </thead>
             <tbody>
-              {standings.map((team, index) => (
-                <tr key={index} className="border-t border-[var(--border-color)]">
-                  <td className="py-2">{team.team}</td>
-                  <td className="text-center py-2">{team.w}</td>
-                  <td className="text-center py-2">{team.l}</td>
-                  <td className="text-center py-2">{team.pct.toFixed(3)}</td>
-                  <td className="text-center py-2">{team.gb}</td>
-                  <td className="text-center py-2">{team.l10}</td>
-                  <td className="text-center py-2">{team.streak}</td>
+              {teams.map((team, index) => (
+                <tr 
+                  key={team.code} 
+                  className={`border-t border-[var(--border-color)] ${
+                    team.isParticipant ? 'bg-gray-50/50' : ''
+                  }`}
+                >
+                  <td className="py-2">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-5 h-5 relative">
+                        <Image
+                          src={getTeamLogo(team.code) || ''}
+                          alt={team.name}
+                          fill
+                          className="object-contain"
+                          sizes="20px"
+                        />
+                      </div>
+                      <span className="font-medium">{team.name}</span>
+                    </div>
+                  </td>
+                  <td className="text-center py-2">{team.record.wins}</td>
+                  <td className="text-center py-2">{team.record.losses}</td>
+                  <td className="text-center py-2">{team.record.winningPercentage.toFixed(3)}</td>
+                  <td className="text-center py-2">{team.record.divisionGamesBack}</td>
+                  <td className="text-center py-2">{team.record.last10}</td>
+                  <td className="text-center py-2">{team.record.streak}</td>
                 </tr>
               ))}
             </tbody>
@@ -252,14 +453,16 @@ function StandingsTab() {
 }
 
 // Match History Tab Content
-function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) {
-  // This would typically come from an API, using mock data for now
-  const matchHistory = [
-    { date: '2024-03-15', homeTeam: homeTeam.name, homeScore: 5, awayTeam: awayTeam.name, awayScore: 3, venue: 'Home Stadium' },
-    { date: '2024-02-28', homeTeam: awayTeam.name, homeScore: 2, awayTeam: homeTeam.name, awayScore: 4, venue: 'Away Stadium' },
-    { date: '2024-02-15', homeTeam: homeTeam.name, homeScore: 6, awayTeam: awayTeam.name, awayScore: 6, venue: 'Home Stadium' },
-    { date: '2024-02-01', homeTeam: awayTeam.name, homeScore: 1, awayTeam: homeTeam.name, awayScore: 3, venue: 'Away Stadium' },
-  ];
+function MatchHistoryTab({ gameDetails }: { gameDetails: DetailedGameInfo | null }) {
+  if (!gameDetails) {
+    return (
+      <div className="py-4 text-center text-sm text-[var(--text-secondary)]">
+        Loading match history...
+      </div>
+    );
+  }
+
+  const { homeTeam, awayTeam, headToHead } = gameDetails;
 
   return (
     <div className="py-2">
@@ -269,7 +472,7 @@ function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Tea
           <h3 className="text-xs font-semibold mb-2">Head to Head Summary</h3>
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-gray-50 rounded-lg p-2 text-center">
-              <div className="text-lg font-bold text-green-600 mb-0.5">2</div>
+              <div className="text-lg font-bold text-green-600 mb-0.5">{headToHead.homeTeamWins}</div>
               <div className="text-[10px] text-[var(--text-secondary)]">
                 <div className="w-6 h-6 mx-auto mb-0.5 relative">
                   <Image
@@ -284,7 +487,7 @@ function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Tea
               </div>
             </div>
             <div className="bg-gray-50 rounded-lg p-2 text-center">
-              <div className="text-lg font-bold mb-0.5">1</div>
+              <div className="text-lg font-bold mb-0.5">{headToHead.draws}</div>
               <div className="text-[10px] text-[var(--text-secondary)]">
                 <div className="w-6 h-6 mx-auto mb-0.5 flex items-center justify-center">
                   <span className="text-base">🤝</span>
@@ -293,7 +496,7 @@ function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Tea
               </div>
             </div>
             <div className="bg-gray-50 rounded-lg p-2 text-center">
-              <div className="text-lg font-bold text-green-600 mb-0.5">1</div>
+              <div className="text-lg font-bold text-green-600 mb-0.5">{headToHead.awayTeamWins}</div>
               <div className="text-[10px] text-[var(--text-secondary)]">
                 <div className="w-6 h-6 mx-auto mb-0.5 relative">
                   <Image
@@ -314,7 +517,7 @@ function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Tea
         <div>
           <h3 className="text-xs font-semibold mb-2">Recent Matches</h3>
           <div className="space-y-2">
-            {matchHistory.map((match, index) => (
+            {headToHead.recentGames.map((match, index) => (
               <div key={index} className="bg-gray-50 rounded-lg p-2">
                 <div className="flex items-center justify-between text-[10px] text-[var(--text-secondary)] mb-2">
                   <div className="flex items-center space-x-1">
@@ -333,16 +536,16 @@ function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Tea
                   <div className="flex items-center space-x-2">
                     <div className="w-6 h-6 relative">
                       <Image
-                        src={getTeamLogo(match.homeTeam === homeTeam.name ? homeTeam.code : awayTeam.code) || ''}
-                        alt={match.homeTeam}
+                        src={getTeamLogo(match.homeTeam.code) || ''}
+                        alt={match.homeTeam.name}
                         fill
                         className="object-contain"
                         sizes="24px"
                       />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-medium">{match.homeTeam}</span>
-                      <span className="text-sm font-bold">{match.homeScore}</span>
+                      <span className="text-[10px] font-medium">{match.homeTeam.name}</span>
+                      <span className="text-sm font-bold">{match.homeTeam.score}</span>
                     </div>
                   </div>
                   <div className="flex flex-col items-center px-2">
@@ -351,13 +554,13 @@ function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Tea
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="flex flex-col items-end">
-                      <span className="text-[10px] font-medium">{match.awayTeam}</span>
-                      <span className="text-sm font-bold">{match.awayScore}</span>
+                      <span className="text-[10px] font-medium">{match.awayTeam.name}</span>
+                      <span className="text-sm font-bold">{match.awayTeam.score}</span>
                     </div>
                     <div className="w-6 h-6 relative">
                       <Image
-                        src={getTeamLogo(match.awayTeam === awayTeam.name ? awayTeam.code : homeTeam.code) || ''}
-                        alt={match.awayTeam}
+                        src={getTeamLogo(match.awayTeam.code) || ''}
+                        alt={match.awayTeam.name}
                         fill
                         className="object-contain"
                         sizes="24px"
@@ -367,13 +570,13 @@ function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Tea
                 </div>
                 <div className="mt-2 pt-2 border-t border-[var(--border-color)] flex items-center justify-between text-[10px] text-[var(--text-secondary)]">
                   <div>
-                    {match.homeScore > match.awayScore ? match.homeTeam :
-                     match.awayScore > match.homeScore ? match.awayTeam :
-                     'Draw'} {match.homeScore === match.awayScore ? '' : 'won'}
+                    {match.homeTeam.score > match.awayTeam.score ? match.homeTeam.name :
+                     match.awayTeam.score > match.homeTeam.score ? match.awayTeam.name :
+                     'Draw'} {match.homeTeam.score === match.awayTeam.score ? '' : 'won'}
                   </div>
                   <div>
-                    {Math.abs(match.homeScore - match.awayScore) === 0 ? 'Draw' :
-                     `by ${Math.abs(match.homeScore - match.awayScore)} ${Math.abs(match.homeScore - match.awayScore) === 1 ? 'run' : 'runs'}`}
+                    {Math.abs(match.homeTeam.score - match.awayTeam.score) === 0 ? 'Draw' :
+                     `by ${Math.abs(match.homeTeam.score - match.awayTeam.score)} ${Math.abs(match.homeTeam.score - match.awayTeam.score) === 1 ? 'run' : 'runs'}`}
                   </div>
                 </div>
               </div>
@@ -392,9 +595,35 @@ export default function GameDetailsCard({
   hits = { home: 0, away: 0 },
   errors = { home: 0, away: 0 },
   startTime,
-  status
+  status,
+  gameId
 }: GameDetailsCardProps) {
   const [activeTab, setActiveTab] = useState('details');
+  const [gameDetails, setGameDetails] = useState<DetailedGameInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchGameDetails = async () => {
+      try {
+        setIsLoading(true);
+        // Replace this with your actual API endpoint
+        const response = await fetch(`/api/mlb/games/${gameId}/details`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch game details');
+        }
+        const data = await response.json();
+        setGameDetails(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchGameDetails();
+  }, [gameId]);
+
   const homeLogo = getTeamLogo(homeTeam.code);
   const awayLogo = getTeamLogo(awayTeam.code);
   const isLive = status === 'live';
@@ -566,11 +795,11 @@ export default function GameDetailsCard({
 
           <div className="p-3">
             <Tabs.Content value="details">
-              <DetailsTab homeTeam={homeTeam} awayTeam={awayTeam} />
+              <DetailsTab gameDetails={gameDetails} />
             </Tabs.Content>
 
             <Tabs.Content value="match">
-              <MatchHistoryTab homeTeam={homeTeam} awayTeam={awayTeam} />
+              <MatchHistoryTab gameDetails={gameDetails} />
             </Tabs.Content>
 
             <Tabs.Content value="lineups">
@@ -580,11 +809,11 @@ export default function GameDetailsCard({
             </Tabs.Content>
 
             <Tabs.Content value="statistics">
-              <StatisticsTab homeTeam={homeTeam} awayTeam={awayTeam} />
+              <StatisticsTab gameDetails={gameDetails} />
             </Tabs.Content>
 
             <Tabs.Content value="standings">
-              <StandingsTab />
+              <StandingsTab gameDetails={gameDetails} />
             </Tabs.Content>
           </div>
         </Tabs.Root>
