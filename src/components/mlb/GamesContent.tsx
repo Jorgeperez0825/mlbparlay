@@ -258,22 +258,22 @@ export default function GamesContent({ games, isLoading, error, selectedDate, pr
 
                 <div className="p-4 space-y-3">
                   {/* Mobile Quick Stats */}
-                  <div className="md:hidden grid grid-cols-3 gap-2 mb-4">
-                    <div className="bg-gray-50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-[var(--text-secondary)]">Live</div>
-                      <div className="text-lg font-semibold">{games.filter(game => game.status === 'live').length}</div>
+                  <Tabs.Content value="all">
+                    <div className="md:hidden grid grid-cols-3 gap-2 mb-4">
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <div className="text-xs text-[var(--text-secondary)]">Live</div>
+                        <div className="text-lg font-semibold">{games.filter(game => game.status === 'live').length}</div>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <div className="text-xs text-[var(--text-secondary)]">Upcoming</div>
+                        <div className="text-lg font-semibold">{games.filter(game => game.status === 'scheduled').length}</div>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-3 text-center">
+                        <div className="text-xs text-[var(--text-secondary)]">Finished</div>
+                        <div className="text-lg font-semibold">{games.filter(game => game.status === 'finished').length}</div>
+                      </div>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-[var(--text-secondary)]">Upcoming</div>
-                      <div className="text-lg font-semibold">{games.filter(game => game.status === 'scheduled').length}</div>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-[var(--text-secondary)]">Finished</div>
-                      <div className="text-lg font-semibold">{games.filter(game => game.status === 'finished').length}</div>
-                    </div>
-                  </div>
 
-                  <Tabs.Content value="all" className="space-y-3">
                     {games.length > 0 ? (
                       games.map((game) => (
                         <GameCard 
