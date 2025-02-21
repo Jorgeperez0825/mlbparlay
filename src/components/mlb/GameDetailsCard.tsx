@@ -205,7 +205,7 @@ function StatisticsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team 
 }
 
 // Standings Tab Content
-function StandingsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) {
+function StandingsTab() {
   const standings = [
     { team: 'Team A', w: 45, l: 30, pct: .600, gb: '-', l10: '7-3', streak: 'W3' },
     { team: 'Team B', w: 42, l: 33, pct: .560, gb: '3.0', l10: '5-5', streak: 'L1' },
@@ -441,7 +441,7 @@ export default function GameDetailsCard({
           </Tabs.Content>
 
           <Tabs.Content value="standings">
-            <StandingsTab homeTeam={homeTeam} awayTeam={awayTeam} />
+            <StandingsTab />
           </Tabs.Content>
         </Tabs.Root>
       </div>
