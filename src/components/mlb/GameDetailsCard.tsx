@@ -26,7 +26,7 @@ interface GameDetailsCardProps {
 }
 
 // Details Tab Content
-function DetailsTab({ homeTeam, awayTeam, status }: { homeTeam: Team; awayTeam: Team; status: string }) {
+function DetailsTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) {
   return (
     <div className="py-4">
       <div className="space-y-4">
@@ -427,7 +427,7 @@ export default function GameDetailsCard({
           </Tabs.List>
 
           <Tabs.Content value="details">
-            <DetailsTab homeTeam={homeTeam} awayTeam={awayTeam} status={status} />
+            <DetailsTab homeTeam={homeTeam} awayTeam={awayTeam} />
           </Tabs.Content>
 
           <Tabs.Content value="lineups">
