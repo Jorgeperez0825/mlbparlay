@@ -297,53 +297,53 @@ export default function GameDetailsCard({
       <div className="p-3 sm:p-4">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           {/* Away Team */}
-          <div className="flex flex-col items-center text-center space-y-1.5">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 relative rounded-full bg-gray-50 p-2 shadow-sm transition-transform hover:scale-105">
+          <div className="flex flex-col items-center text-center space-y-1">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 relative rounded-full bg-gray-50 p-2 shadow-sm transition-transform hover:scale-105">
               {awayLogo ? (
                 <Image
                   src={awayLogo}
                   alt={`${awayTeam.name} logo`}
                   fill
-                  className="object-contain p-1.5"
+                  className="object-contain p-1"
                 />
               ) : (
                 <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center">
-                  <span className="text-xs sm:text-sm font-bold">{awayTeam.code}</span>
+                  <span className="text-[10px] sm:text-xs font-bold">{awayTeam.code}</span>
                 </div>
               )}
             </div>
-            <div className="text-xl sm:text-2xl font-bold tracking-tight">{awayTeam.score}</div>
-            <div className="text-xs sm:text-sm font-medium text-[var(--text-secondary)] max-w-[100px] truncate">
+            <div className="text-lg sm:text-xl font-bold tracking-tight">{awayTeam.score}</div>
+            <div className="text-[10px] sm:text-xs font-medium text-[var(--text-secondary)] max-w-[80px] truncate">
               {awayTeam.name}
             </div>
           </div>
 
           {/* Score Separator */}
           <div className="flex flex-col items-center justify-center">
-            <div className="text-lg sm:text-xl font-bold text-[var(--text-secondary)] mb-1">VS</div>
-            <div className="text-xs sm:text-sm text-[var(--text-secondary)]">
+            <div className="text-base sm:text-lg font-bold text-[var(--text-secondary)] mb-1">VS</div>
+            <div className="text-[10px] sm:text-xs text-[var(--text-secondary)]">
               {isLive ? 'LIVE' : isFinished ? 'FINAL' : startTime}
             </div>
           </div>
 
           {/* Home Team */}
-          <div className="flex flex-col items-center text-center space-y-1.5">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 relative rounded-full bg-gray-50 p-2 shadow-sm transition-transform hover:scale-105">
+          <div className="flex flex-col items-center text-center space-y-1">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 relative rounded-full bg-gray-50 p-2 shadow-sm transition-transform hover:scale-105">
               {homeLogo ? (
                 <Image
                   src={homeLogo}
                   alt={`${homeTeam.name} logo`}
                   fill
-                  className="object-contain p-1.5"
+                  className="object-contain p-1"
                 />
               ) : (
                 <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center">
-                  <span className="text-xs sm:text-sm font-bold">{homeTeam.code}</span>
+                  <span className="text-[10px] sm:text-xs font-bold">{homeTeam.code}</span>
                 </div>
               )}
             </div>
-            <div className="text-xl sm:text-2xl font-bold tracking-tight">{homeTeam.score}</div>
-            <div className="text-xs sm:text-sm font-medium text-[var(--text-secondary)] max-w-[100px] truncate">
+            <div className="text-lg sm:text-xl font-bold tracking-tight">{homeTeam.score}</div>
+            <div className="text-[10px] sm:text-xs font-medium text-[var(--text-secondary)] max-w-[80px] truncate">
               {homeTeam.name}
             </div>
           </div>
