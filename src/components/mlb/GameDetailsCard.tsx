@@ -251,6 +251,86 @@ function StandingsTab() {
   );
 }
 
+// Match History Tab Content
+function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Team }) {
+  // This would typically come from an API, using mock data for now
+  const matchHistory = [
+    { date: '2024-03-15', homeTeam: homeTeam.name, homeScore: 5, awayTeam: awayTeam.name, awayScore: 3, venue: 'Home Stadium' },
+    { date: '2024-02-28', homeTeam: awayTeam.name, homeScore: 2, awayTeam: homeTeam.name, awayScore: 4, venue: 'Away Stadium' },
+    { date: '2024-02-15', homeTeam: homeTeam.name, homeScore: 6, awayTeam: awayTeam.name, awayScore: 6, venue: 'Home Stadium' },
+    { date: '2024-02-01', homeTeam: awayTeam.name, homeScore: 1, awayTeam: homeTeam.name, awayScore: 3, venue: 'Away Stadium' },
+  ];
+
+  return (
+    <div className="py-4">
+      <div className="space-y-4">
+        {/* Head to Head Summary */}
+        <div>
+          <h3 className="text-sm font-semibold mb-3">Head to Head Summary</h3>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-gray-50 rounded-lg p-3 text-center">
+              <div className="text-lg font-semibold text-green-600">2</div>
+              <div className="text-xs text-[var(--text-secondary)]">{homeTeam.name} Wins</div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center">
+              <div className="text-lg font-semibold">1</div>
+              <div className="text-xs text-[var(--text-secondary)]">Draws</div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center">
+              <div className="text-lg font-semibold text-green-600">1</div>
+              <div className="text-xs text-[var(--text-secondary)]">{awayTeam.name} Wins</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Matches */}
+        <div>
+          <h3 className="text-sm font-semibold mb-3">Recent Matches</h3>
+          <div className="space-y-2">
+            {matchHistory.map((match, index) => (
+              <div key={index} className="bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] mb-2">
+                  <span>{new Date(match.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  <span>{match.venue}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 relative">
+                      <Image
+                        src={getTeamLogo(match.homeTeam === homeTeam.name ? homeTeam.code : awayTeam.code) || ''}
+                        alt={match.homeTeam}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    <span className="text-sm font-medium">{match.homeTeam}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm font-semibold">{match.homeScore}</span>
+                    <span className="text-xs text-[var(--text-secondary)]">vs</span>
+                    <span className="text-sm font-semibold">{match.awayScore}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">{match.awayTeam}</span>
+                    <div className="w-6 h-6 relative">
+                      <Image
+                        src={getTeamLogo(match.awayTeam === awayTeam.name ? awayTeam.code : homeTeam.code) || ''}
+                        alt={match.awayTeam}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GameDetailsCard({
   homeTeam,
   awayTeam,
@@ -407,6 +487,12 @@ export default function GameDetailsCard({
               Details
             </Tabs.Trigger>
             <Tabs.Trigger
+              value="match"
+              className="px-2.5 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-xs md:text-sm font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+            >
+              Match History
+            </Tabs.Trigger>
+            <Tabs.Trigger
               value="lineups"
               className="px-2.5 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-xs md:text-sm font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
@@ -428,6 +514,10 @@ export default function GameDetailsCard({
 
           <Tabs.Content value="details">
             <DetailsTab homeTeam={homeTeam} awayTeam={awayTeam} />
+          </Tabs.Content>
+
+          <Tabs.Content value="match">
+            <MatchHistoryTab homeTeam={homeTeam} awayTeam={awayTeam} />
           </Tabs.Content>
 
           <Tabs.Content value="lineups">
