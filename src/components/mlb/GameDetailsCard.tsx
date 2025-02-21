@@ -262,36 +262,72 @@ function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Tea
   ];
 
   return (
-    <div className="py-4">
+    <div className="py-2">
       <div className="space-y-4">
         {/* Head to Head Summary */}
         <div>
-          <h3 className="text-sm font-semibold mb-3">Head to Head Summary</h3>
+          <h3 className="text-xs font-semibold mb-2">Head to Head Summary</h3>
           <div className="grid grid-cols-3 gap-2">
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <div className="text-lg font-semibold text-green-600">2</div>
-              <div className="text-xs text-[var(--text-secondary)]">{homeTeam.name} Wins</div>
+            <div className="bg-gray-50 rounded-lg p-2 text-center">
+              <div className="text-lg font-bold text-green-600 mb-0.5">2</div>
+              <div className="text-[10px] text-[var(--text-secondary)]">
+                <div className="w-6 h-6 mx-auto mb-0.5 relative">
+                  <Image
+                    src={getTeamLogo(homeTeam.code) || ''}
+                    alt={homeTeam.name}
+                    fill
+                    className="object-contain"
+                    sizes="24px"
+                  />
+                </div>
+                {homeTeam.name} Wins
+              </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <div className="text-lg font-semibold">1</div>
-              <div className="text-xs text-[var(--text-secondary)]">Draws</div>
+            <div className="bg-gray-50 rounded-lg p-2 text-center">
+              <div className="text-lg font-bold mb-0.5">1</div>
+              <div className="text-[10px] text-[var(--text-secondary)]">
+                <div className="w-6 h-6 mx-auto mb-0.5 flex items-center justify-center">
+                  <span className="text-base">🤝</span>
+                </div>
+                Draws
+              </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <div className="text-lg font-semibold text-green-600">1</div>
-              <div className="text-xs text-[var(--text-secondary)]">{awayTeam.name} Wins</div>
+            <div className="bg-gray-50 rounded-lg p-2 text-center">
+              <div className="text-lg font-bold text-green-600 mb-0.5">1</div>
+              <div className="text-[10px] text-[var(--text-secondary)]">
+                <div className="w-6 h-6 mx-auto mb-0.5 relative">
+                  <Image
+                    src={getTeamLogo(awayTeam.code) || ''}
+                    alt={awayTeam.name}
+                    fill
+                    className="object-contain"
+                    sizes="24px"
+                  />
+                </div>
+                {awayTeam.name} Wins
+              </div>
             </div>
           </div>
         </div>
 
         {/* Recent Matches */}
         <div>
-          <h3 className="text-sm font-semibold mb-3">Recent Matches</h3>
+          <h3 className="text-xs font-semibold mb-2">Recent Matches</h3>
           <div className="space-y-2">
             {matchHistory.map((match, index) => (
-              <div key={index} className="bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] mb-2">
-                  <span>{new Date(match.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                  <span>{match.venue}</span>
+              <div key={index} className="bg-gray-50 rounded-lg p-2">
+                <div className="flex items-center justify-between text-[10px] text-[var(--text-secondary)] mb-2">
+                  <div className="flex items-center space-x-1">
+                    <span className="w-1 h-1 rounded-full bg-[var(--text-secondary)]"></span>
+                    <span>{new Date(match.date).toLocaleDateString('en-US', { 
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <span>{match.venue}</span>
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -301,25 +337,43 @@ function MatchHistoryTab({ homeTeam, awayTeam }: { homeTeam: Team; awayTeam: Tea
                         alt={match.homeTeam}
                         fill
                         className="object-contain"
+                        sizes="24px"
                       />
                     </div>
-                    <span className="text-sm font-medium">{match.homeTeam}</span>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-medium">{match.homeTeam}</span>
+                      <span className="text-sm font-bold">{match.homeScore}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <span className="text-sm font-semibold">{match.homeScore}</span>
-                    <span className="text-xs text-[var(--text-secondary)]">vs</span>
-                    <span className="text-sm font-semibold">{match.awayScore}</span>
+                  <div className="flex flex-col items-center px-2">
+                    <span className="text-[10px] text-[var(--text-secondary)]">Final</span>
+                    <span className="text-xs font-bold">VS</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium">{match.awayTeam}</span>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] font-medium">{match.awayTeam}</span>
+                      <span className="text-sm font-bold">{match.awayScore}</span>
+                    </div>
                     <div className="w-6 h-6 relative">
                       <Image
                         src={getTeamLogo(match.awayTeam === awayTeam.name ? awayTeam.code : homeTeam.code) || ''}
                         alt={match.awayTeam}
                         fill
                         className="object-contain"
+                        sizes="24px"
                       />
                     </div>
+                  </div>
+                </div>
+                <div className="mt-2 pt-2 border-t border-[var(--border-color)] flex items-center justify-between text-[10px] text-[var(--text-secondary)]">
+                  <div>
+                    {match.homeScore > match.awayScore ? match.homeTeam :
+                     match.awayScore > match.homeScore ? match.awayTeam :
+                     'Draw'} {match.homeScore === match.awayScore ? '' : 'won'}
+                  </div>
+                  <div>
+                    {Math.abs(match.homeScore - match.awayScore) === 0 ? 'Draw' :
+                     `by ${Math.abs(match.homeScore - match.awayScore)} ${Math.abs(match.homeScore - match.awayScore) === 1 ? 'run' : 'runs'}`}
                   </div>
                 </div>
               </div>
@@ -361,74 +415,76 @@ export default function GameDetailsCard({
   return (
     <div className="bg-white rounded-xl shadow-lg border border-[var(--border-color)] backdrop-blur-sm bg-white/95">
       {/* Header */}
-      <div className="p-2 border-b border-[var(--border-color)]">
+      <div className="p-3 border-b border-[var(--border-color)]">
         <div className="flex items-center space-x-2">
-          <div className="w-1 h-1 rounded-full bg-[var(--text-secondary)]"></div>
-          <div className="text-[10px] sm:text-xs font-medium text-[var(--text-secondary)]">USA</div>
+          <div className="w-1.5 h-1.5 rounded-full bg-[var(--text-secondary)]"></div>
+          <div className="text-xs font-medium text-[var(--text-secondary)]">USA</div>
         </div>
-        <div className="text-[10px] sm:text-xs font-semibold mt-0.5">MLB {isFinished ? 'Game Summary' : 'Live Game'}</div>
+        <div className="text-xs font-semibold mt-1">MLB {isFinished ? 'Game Summary' : 'Live Game'}</div>
       </div>
 
       {/* Score Section */}
-      <div className="p-2 sm:p-3">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
+      <div className="p-3">
+        <div className="flex items-center justify-between mb-3">
           {/* Away Team */}
-          <div className="flex flex-col items-center text-center space-y-0.5">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 relative rounded-full bg-gray-50 p-1.5 shadow-sm transition-transform hover:scale-105">
+          <div className="flex flex-col items-center text-center space-y-1">
+            <div className="w-10 h-10 relative rounded-full bg-gray-50 p-1.5 shadow-sm transition-transform hover:scale-105">
               {awayLogo ? (
                 <Image
                   src={awayLogo}
                   alt={`${awayTeam.name} logo`}
                   fill
                   className="object-contain p-0.5"
+                  sizes="40px"
                 />
               ) : (
                 <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center">
-                  <span className="text-[8px] sm:text-[10px] font-bold">{awayTeam.code}</span>
+                  <span className="text-[10px] font-bold">{awayTeam.code}</span>
                 </div>
               )}
             </div>
-            <div className="text-base sm:text-lg font-bold tracking-tight">{awayTeam.score}</div>
-            <div className="text-[8px] sm:text-[10px] font-medium text-[var(--text-secondary)] max-w-[60px] truncate">
+            <div className="text-lg font-bold tracking-tight">{awayTeam.score}</div>
+            <div className="text-[10px] font-medium text-[var(--text-secondary)] max-w-[70px] truncate">
               {awayTeam.name}
             </div>
           </div>
 
           {/* Score Separator */}
-          <div className="flex flex-col items-center justify-center">
-            <div className="text-sm sm:text-base font-bold text-[var(--text-secondary)] mb-0.5">VS</div>
-            <div className="text-[8px] sm:text-[10px] text-[var(--text-secondary)]">
+          <div className="flex flex-col items-center justify-center px-3">
+            <div className="text-base font-bold text-[var(--text-secondary)] mb-0.5">VS</div>
+            <div className="text-[10px] text-[var(--text-secondary)]">
               {isLive ? 'LIVE' : isFinished ? 'FINAL' : startTime}
             </div>
           </div>
 
           {/* Home Team */}
-          <div className="flex flex-col items-center text-center space-y-0.5">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 relative rounded-full bg-gray-50 p-1.5 shadow-sm transition-transform hover:scale-105">
+          <div className="flex flex-col items-center text-center space-y-1">
+            <div className="w-10 h-10 relative rounded-full bg-gray-50 p-1.5 shadow-sm transition-transform hover:scale-105">
               {homeLogo ? (
                 <Image
                   src={homeLogo}
                   alt={`${homeTeam.name} logo`}
                   fill
                   className="object-contain p-0.5"
+                  sizes="40px"
                 />
               ) : (
                 <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center">
-                  <span className="text-[8px] sm:text-[10px] font-bold">{homeTeam.code}</span>
+                  <span className="text-[10px] font-bold">{homeTeam.code}</span>
                 </div>
               )}
             </div>
-            <div className="text-base sm:text-lg font-bold tracking-tight">{homeTeam.score}</div>
-            <div className="text-[8px] sm:text-[10px] font-medium text-[var(--text-secondary)] max-w-[60px] truncate">
+            <div className="text-lg font-bold tracking-tight">{homeTeam.score}</div>
+            <div className="text-[10px] font-medium text-[var(--text-secondary)] max-w-[70px] truncate">
               {homeTeam.name}
             </div>
           </div>
         </div>
 
         {/* Game Status */}
-        <div className="text-center mb-3 sm:mb-4">
+        <div className="text-center mb-3">
           {isLive ? (
-            <div className="inline-flex items-center space-x-1.5 bg-red-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+            <div className="inline-flex items-center space-x-1.5 bg-red-50 px-3 py-1.5 rounded-full">
               <span className="w-1 h-1 bg-red-500 rounded-full animate-pulse"></span>
               <span className="font-medium text-red-600 text-xs">LIVE</span>
               {inningDisplay && (
@@ -436,12 +492,12 @@ export default function GameDetailsCard({
               )}
             </div>
           ) : isFinished ? (
-            <div className="inline-flex items-center space-x-1.5 bg-gray-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+            <div className="inline-flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
               <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
               <span className="text-gray-600 text-xs font-medium">Final</span>
             </div>
           ) : (
-            <div className="inline-flex items-center space-x-1.5 bg-gray-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+            <div className="inline-flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
               <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
               <span className="text-gray-600 text-xs font-medium">{startTime}</span>
             </div>
@@ -449,25 +505,25 @@ export default function GameDetailsCard({
         </div>
 
         {/* Stats Table */}
-        <div className="w-full border border-[var(--border-color)] rounded-lg overflow-hidden bg-gray-50 mb-3 sm:mb-4">
+        <div className="w-full border border-[var(--border-color)] rounded-lg overflow-hidden bg-gray-50 mb-3">
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-gray-100/80">
-                <th className="py-1.5 px-2 text-left font-medium text-[var(--text-secondary)]">R</th>
-                <th className="py-1.5 px-2 text-left font-medium text-[var(--text-secondary)]">H</th>
-                <th className="py-1.5 px-2 text-left font-medium text-[var(--text-secondary)]">E</th>
+                <th className="py-1.5 px-3 text-left font-medium text-[var(--text-secondary)]">R</th>
+                <th className="py-1.5 px-3 text-left font-medium text-[var(--text-secondary)]">H</th>
+                <th className="py-1.5 px-3 text-left font-medium text-[var(--text-secondary)]">E</th>
               </tr>
             </thead>
             <tbody className="bg-white">
               <tr className="border-t border-[var(--border-color)]">
-                <td className="py-1.5 px-2 font-medium">{awayTeam.score}</td>
-                <td className="py-1.5 px-2 font-medium">{hits.away}</td>
-                <td className="py-1.5 px-2 font-medium">{errors.away}</td>
+                <td className="py-1.5 px-3 font-medium">{awayTeam.score}</td>
+                <td className="py-1.5 px-3 font-medium">{hits.away}</td>
+                <td className="py-1.5 px-3 font-medium">{errors.away}</td>
               </tr>
               <tr className="border-t border-[var(--border-color)]">
-                <td className="py-1.5 px-2 font-medium">{homeTeam.score}</td>
-                <td className="py-1.5 px-2 font-medium">{hits.home}</td>
-                <td className="py-1.5 px-2 font-medium">{errors.home}</td>
+                <td className="py-1.5 px-3 font-medium">{homeTeam.score}</td>
+                <td className="py-1.5 px-3 font-medium">{hits.home}</td>
+                <td className="py-1.5 px-3 font-medium">{errors.home}</td>
               </tr>
             </tbody>
           </table>
@@ -475,60 +531,62 @@ export default function GameDetailsCard({
 
         {/* Navigation Tabs */}
         <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
-          <Tabs.List className="flex border-b border-[var(--border-color)] overflow-x-auto mt-2 sm:mt-3">
+          <Tabs.List className="flex border-b border-[var(--border-color)] overflow-x-auto">
             <Tabs.Trigger
               value="details"
-              className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+              className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
               Details
             </Tabs.Trigger>
             <Tabs.Trigger
               value="match"
-              className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+              className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
               Match History
             </Tabs.Trigger>
             <Tabs.Trigger
               value="lineups"
-              className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+              className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
               Lineups
             </Tabs.Trigger>
             <Tabs.Trigger
               value="statistics"
-              className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+              className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
               Statistics
             </Tabs.Trigger>
             <Tabs.Trigger
               value="standings"
-              className="px-2 sm:px-2.5 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+              className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
               Standings
             </Tabs.Trigger>
           </Tabs.List>
 
-          <Tabs.Content value="details">
-            <DetailsTab homeTeam={homeTeam} awayTeam={awayTeam} />
-          </Tabs.Content>
+          <div className="p-3">
+            <Tabs.Content value="details">
+              <DetailsTab homeTeam={homeTeam} awayTeam={awayTeam} />
+            </Tabs.Content>
 
-          <Tabs.Content value="match">
-            <MatchHistoryTab homeTeam={homeTeam} awayTeam={awayTeam} />
-          </Tabs.Content>
+            <Tabs.Content value="match">
+              <MatchHistoryTab homeTeam={homeTeam} awayTeam={awayTeam} />
+            </Tabs.Content>
 
-          <Tabs.Content value="lineups">
-            <div className="py-4 text-center text-sm text-[var(--text-secondary)]">
-              Lineups will be available closer to game time
-            </div>
-          </Tabs.Content>
+            <Tabs.Content value="lineups">
+              <div className="py-3 text-center text-xs text-[var(--text-secondary)]">
+                Lineups will be available closer to game time
+              </div>
+            </Tabs.Content>
 
-          <Tabs.Content value="statistics">
-            <StatisticsTab homeTeam={homeTeam} awayTeam={awayTeam} />
-          </Tabs.Content>
+            <Tabs.Content value="statistics">
+              <StatisticsTab homeTeam={homeTeam} awayTeam={awayTeam} />
+            </Tabs.Content>
 
-          <Tabs.Content value="standings">
-            <StandingsTab />
-          </Tabs.Content>
+            <Tabs.Content value="standings">
+              <StandingsTab />
+            </Tabs.Content>
+          </div>
         </Tabs.Root>
       </div>
     </div>
