@@ -534,31 +534,31 @@ export default function GameDetailsCard({
           <Tabs.List className="flex border-b border-[var(--border-color)] overflow-x-auto">
             <Tabs.Trigger
               value="details"
-              className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+              className="flex-1 min-w-[60px] px-2 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
               Details
             </Tabs.Trigger>
             <Tabs.Trigger
               value="match"
-              className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+              className="flex-1 min-w-[60px] px-2 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
               Match History
             </Tabs.Trigger>
             <Tabs.Trigger
               value="lineups"
-              className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+              className="flex-1 min-w-[60px] px-2 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
               Lineups
             </Tabs.Trigger>
             <Tabs.Trigger
               value="statistics"
-              className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+              className="flex-1 min-w-[60px] px-2 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
               Statistics
             </Tabs.Trigger>
             <Tabs.Trigger
               value="standings"
-              className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
+              className="flex-1 min-w-[60px] px-2 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] hover:text-black whitespace-nowrap transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black"
             >
               Standings
             </Tabs.Trigger>
