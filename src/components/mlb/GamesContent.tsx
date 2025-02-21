@@ -233,47 +233,53 @@ export default function GamesContent({ games, isLoading, error, selectedDate, pr
                 <Tabs.List className="flex border-b border-[var(--border-color)] overflow-x-auto px-1 bg-gray-50/50">
                   <Tabs.Trigger
                     value="all"
-                    className="flex-1 min-w-[100px] px-4 py-3 text-sm font-medium text-center transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black text-[var(--text-secondary)] hover:text-black"
+                    className="flex-1 min-w-[80px] px-3 py-3 text-xs font-medium text-center transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black text-[var(--text-secondary)] hover:text-black"
                   >
-                    All Games ({games.length})
+                    <span className="hidden sm:inline">All Games</span>
+                    <span className="sm:hidden">All</span>
+                    <span className="ml-1">({games.length})</span>
                   </Tabs.Trigger>
                   <Tabs.Trigger
                     value="live"
-                    className="flex-1 min-w-[100px] px-4 py-3 text-sm font-medium text-center transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black text-[var(--text-secondary)] hover:text-black"
+                    className="flex-1 min-w-[80px] px-3 py-3 text-xs font-medium text-center transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black text-[var(--text-secondary)] hover:text-black"
                   >
-                    <div className="flex items-center justify-center space-x-2">
+                    <div className="flex items-center justify-center space-x-1">
                       {games.filter(game => game.status === 'live').length > 0 && (
                         <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
                       )}
-                      <span>Live ({games.filter(game => game.status === 'live').length})</span>
+                      <span className="hidden sm:inline">Live Games</span>
+                      <span className="sm:hidden">Live</span>
+                      <span>({games.filter(game => game.status === 'live').length})</span>
                     </div>
                   </Tabs.Trigger>
                   <Tabs.Trigger
                     value="finished"
-                    className="flex-1 min-w-[100px] px-4 py-3 text-sm font-medium text-center transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black text-[var(--text-secondary)] hover:text-black"
+                    className="flex-1 min-w-[80px] px-3 py-3 text-xs font-medium text-center transition-colors data-[state=active]:text-black data-[state=active]:border-b-2 data-[state=active]:border-black text-[var(--text-secondary)] hover:text-black"
                   >
-                    Finished ({games.filter(game => game.status === 'finished').length})
+                    <span className="hidden sm:inline">Finished Games</span>
+                    <span className="sm:hidden">Finished</span>
+                    <span className="ml-1">({games.filter(game => game.status === 'finished').length})</span>
                   </Tabs.Trigger>
                 </Tabs.List>
 
                 <div className="p-4 space-y-3">
-                  {/* Mobile Quick Stats */}
-                  <Tabs.Content value="all">
-                    <div className="md:hidden grid grid-cols-3 gap-2 mb-4">
-                      <div className="bg-gray-50 rounded-lg p-3 text-center">
-                        <div className="text-xs text-[var(--text-secondary)]">Live</div>
-                        <div className="text-lg font-semibold">{games.filter(game => game.status === 'live').length}</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3 text-center">
-                        <div className="text-xs text-[var(--text-secondary)]">Upcoming</div>
-                        <div className="text-lg font-semibold">{games.filter(game => game.status === 'scheduled').length}</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3 text-center">
-                        <div className="text-xs text-[var(--text-secondary)]">Finished</div>
-                        <div className="text-lg font-semibold">{games.filter(game => game.status === 'finished').length}</div>
-                      </div>
+                  {/* Mobile Quick Stats - Only show on very small screens */}
+                  <div className="sm:hidden grid grid-cols-3 gap-2 mb-4">
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <div className="text-xs text-[var(--text-secondary)]">Live</div>
+                      <div className="text-lg font-semibold">{games.filter(game => game.status === 'live').length}</div>
                     </div>
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <div className="text-xs text-[var(--text-secondary)]">Upcoming</div>
+                      <div className="text-lg font-semibold">{games.filter(game => game.status === 'scheduled').length}</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3 text-center">
+                      <div className="text-xs text-[var(--text-secondary)]">Finished</div>
+                      <div className="text-lg font-semibold">{games.filter(game => game.status === 'finished').length}</div>
+                    </div>
+                  </div>
 
+                  <Tabs.Content value="all" className="space-y-3">
                     {games.length > 0 ? (
                       games.map((game) => (
                         <GameCard 
