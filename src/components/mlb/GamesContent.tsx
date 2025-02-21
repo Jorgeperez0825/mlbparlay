@@ -200,8 +200,8 @@ export default function GamesContent({ games, isLoading, error, selectedDate, pr
         </aside>
 
         {/* Main Content - Games */}
-        <main className={`col-span-1 ${selectedGame ? 'md:col-span-7' : 'md:col-span-10'}`}>
-          <div className="card rounded-xl shadow-sm bg-white/95 backdrop-blur-sm overflow-hidden">
+        <main className={`col-span-1 ${selectedGame ? 'md:col-span-5' : 'md:col-span-7'}`}>
+          <div className="card rounded-xl shadow-sm bg-white/95 backdrop-blur-sm overflow-hidden max-w-2xl mx-auto">
             {/* Date Navigation */}
             <div className="border-b border-[var(--border-color)]">
               <DateNavigation
@@ -331,8 +331,8 @@ export default function GamesContent({ games, isLoading, error, selectedDate, pr
 
         {/* Right Sidebar - Game Details (Desktop) */}
         {selectedGame && (
-          <aside className="hidden md:block md:col-span-3">
-            <div className="sticky top-20 w-full">
+          <aside className="hidden md:block md:col-span-5">
+            <div className="sticky top-20 w-full max-w-xl mx-auto">
               <GameDetailsCard {...selectedGame} />
             </div>
           </aside>
